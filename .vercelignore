@@ -8,4 +8,5 @@ build/
 .next/
 out/
 coverage/
-CLAUDE.md
+CLAUDE.mdapi/
+src/

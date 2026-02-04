@@ -1,5 +1,23 @@
 // Authorization Code Flow - Simplified app.js
 
+/**
+ * Safe fetch wrapper that handles errors properly
+ */
+async function safeFetch(url, options = {}) {
+  const res = await fetch(url, options);
+  if (!res.ok) {
+    let error = `HTTP ${res.status}`;
+    try {
+      const data = await res.json();
+      error = data.error || error;
+    } catch {
+      error = `${error}: ${res.statusText}`;
+    }
+    throw new Error(error);
+  }
+  return res.json();
+}
+
 const CONFIG_KEY = 'okta_auth_code_config';
 const CONFIG_META_KEY = 'okta_auth_code_config_meta';
 const CONFIG_TYPE = 'auth-code-flow';
@@ -1146,8 +1164,20 @@ async function doLogin() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(cfg),
     });
+
+    // Check status before trying to parse JSON
+    if (!res.ok) {
+      let error = 'Request failed';
+      try {
+        const data = await res.json();
+        error = data.error || `HTTP ${res.status}`;
+      } catch {
+        error = `HTTP ${res.status}: ${res.statusText}`;
+      }
+      throw new Error(error);
+    }
+
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Request failed');
 
     // Open OAuth login in popup
     const w = 500, h = 600;

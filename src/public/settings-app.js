@@ -22,18 +22,30 @@ async function init() {
 async function loadAllData() {
   try {
     const [orgsRes, appsRes, agentsRes] = await Promise.all([
-      fetch('/api/settings/orgs'),
-      fetch('/api/settings/apps'),
-      fetch('/api/settings/agents'),
+      fetch('/api/settings?type=organizations'),
+      fetch('/api/settings?type=applications'),
+      fetch('/api/settings?type=agents'),
     ]);
+
+    if (!orgsRes.ok || !appsRes.ok || !agentsRes.ok) {
+      throw new Error('Failed to load settings from server');
+    }
 
     orgs = await orgsRes.json();
     apps = await appsRes.json();
     agents = await agentsRes.json();
 
+    if (!Array.isArray(orgs)) orgs = [];
+    if (!Array.isArray(apps)) apps = [];
+    if (!Array.isArray(agents)) agents = [];
+
     updateCounts();
   } catch (err) {
     console.error('Failed to load settings:', err);
+    orgs = [];
+    apps = [];
+    agents = [];
+    updateCounts();
   }
 }
 
