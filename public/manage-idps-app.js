@@ -26,7 +26,12 @@ async function loadIdps() {
 
   try {
     const res = await fetch('/api/idps');
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
     idpList = await res.json();
+
+    if (!Array.isArray(idpList)) {
+      idpList = idpList.idps || [];
+    }
 
     if (idpList.length === 0) {
       listEl.innerHTML = `
@@ -43,6 +48,7 @@ async function loadIdps() {
       idpList.map(async (idp) => {
         try {
           const res = await fetch(`/api/idps/${idp.id}`);
+          if (!res.ok) throw new Error(`Failed to load IDP ${idp.id}`);
           return await res.json();
         } catch {
           return idp;

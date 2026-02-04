@@ -31,16 +31,9 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
       if (type && global.vercelSettings[type]) {
-        res.json({
-          items: global.vercelSettings[type],
-          type,
-          note: 'Settings stored in memory. Use database for persistence.',
-        });
+        res.json(global.vercelSettings[type]);
       } else {
-        res.json({
-          ...global.vercelSettings,
-          note: 'Settings stored in memory. Use database for persistence.',
-        });
+        res.json(global.vercelSettings);
       }
     } else if (req.method === 'POST') {
       const { item } = req.body;

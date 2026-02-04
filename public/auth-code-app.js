@@ -1171,10 +1171,14 @@ async function doLogin() {
         if (!resultEl.querySelector('.result-box')) {
           // Try to fetch the actual error from the server logs
           try {
-            const res = await fetch('/api/logs/current/last-error');
-            const data = await res.json();
-            if (data.error && data.error.message) {
-              showError(data.error.message);
+            const res = await fetch('/api/logs/last-error');
+            if (res.ok) {
+              const data = await res.json();
+              if (data.error && data.error.message) {
+                showError(data.error.message);
+              } else {
+                showError('Login window was closed before completing.');
+              }
             } else {
               showError('Login window was closed before completing.');
             }

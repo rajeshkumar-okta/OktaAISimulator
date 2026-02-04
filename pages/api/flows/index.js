@@ -24,19 +24,8 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-      // List all flows
-      res.json({
-        flows: global.vercelFlows,
-        builtInFlows: [
-          'auth-code-flow',
-          'agentic-token-exchange',
-          'device-grant-flow',
-          'token-exchange-flow',
-          'native-to-web-flow',
-          'direct-auth-flow',
-        ],
-        note: 'Custom flows stored in memory. Use database for persistence.',
-      });
+      // List all flows (custom flows only - built-in are implicit)
+      res.json(global.vercelFlows);
     } else if (req.method === 'POST') {
       // Create new flow
       const { name, definition } = req.body;

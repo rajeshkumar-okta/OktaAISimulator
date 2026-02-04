@@ -25,10 +25,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
       // List all IDPs
-      res.json({
-        idps: global.vercelIdps,
-        note: 'IDPs stored in memory. Use KV or database for persistence.',
-      });
+      res.json(global.vercelIdps);
     } else if (req.method === 'POST') {
       // Create new IDP
       const { name, config } = req.body;

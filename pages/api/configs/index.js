@@ -24,11 +24,7 @@ export default async function handler(req, res) {
       // Get current config from session store
       const state = store.getState();
       const configs = state.cfg ? [{ id: 'current', ...state.cfg }] : [];
-      
-      res.json({
-        configs,
-        message: 'Note: Configs stored in memory. For persistence, use database or Vercel KV.',
-      });
+      res.json(configs);
     } else if (req.method === 'POST') {
       // Save config to session store
       const { config } = req.body;
