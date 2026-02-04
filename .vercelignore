@@ -1,0 +1,11 @@
+node_modules/
+.git/
+.env.local
+.env.*.local
+logs/
+dist/
+build/
+.next/
+out/
+coverage/
+CLAUDE.md

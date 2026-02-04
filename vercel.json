@@ -1,0 +1,45 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "public": false,
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x",
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "env": {
+    "PORT": "3000"
+  },
+  "envPrefix": "VERCEL_",
+  "headers": [
+    {
+      "source": "/public/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1.js"
+    },
+    {
+      "source": "/(.*\\.html|.*\\.css|.*\\.js|.*\\.ico|.*\\.json)$",
+      "destination": "/$1"
+    },
+    {
+      "source": "/(.well-known|setup|login|manage-idps|index|log-viewer|callback)(?:/|$)",
+      "destination": "/public/$1.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/public/index.html"
+    }
+  ]
+}
