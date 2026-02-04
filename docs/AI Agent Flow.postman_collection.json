@@ -1,0 +1,347 @@
+{
+	"info": {
+		"_postman_id": "8bbbca1a-e6a2-4a54-b58d-7fe4f312dcea",
+		"name": "AI Agent Flow",
+		"description": "This collection demonstrates the invocation of our Agentic token exchange flow. The primary value-add is that it does the heavy-lifting of generating client assertions for client authentication. This collection should **ONLY** be used for testing purposes. Be sure to properly secure credentials for real or production-like environments!\n\n# Prerequisites\n\n- An Okta Org\n    \n- An active and configured AI Agent\n    \n- An active and configured Agentic App\n    \n- A Custom Authorization Server configured with the JWT Bearer grant type, and policies configured to allow access for the Agent.\n    \n\n# Collection Setup\n\nThe following environment variables must be set under the `Variables` tab of this collection:\n\n- `orgUrl` The org domain (e.g. `https://example.okta.com`) Be sure to trim any trailing slashes.\n    \n- `agenticAppId` the clientId of the agentic app configured for your agent.\n    \n- `agenticAppSecret` the client secret of the agentic app.\n    \n- `principalId` The id of your Agent/Workload Principal (e.g. `wlpJ46tr4ks0JJi081t7`)\n    \n- `privateJWK` The JWK-formatted private key corresponding to a public key registered to your agent. This key can be generated for you on the Agent page by clicking \"Add\" under \"Public Keys\".\n    \n- `authorizationServerId` the id of your authorization server\n    \n\n# Execution\n\nThis collection is intended to be executed in order and require minimal copy/pasting between requests.\n\n1. The Token Exchange Request must be set up with a valid `id_token` under the `subject_token` request parameter which is pre-populated with `FILL_ME_OUT`. Additionally you need to specify the desired `scope` for the final token (space-delimited in the case of multiple scopes).\n    \n    1. A valid `id_token` will have to be supplied once per hour, or upon actions like the user being deactivated or unassigned from the client.\n        \n2. Once you have performed token exchange you may run the Authoriztion Server Request. The `assertion` parameter will be completed with whatever value was most recently returned in a Token Exchange Request.\n    \n\n### Optional\n\nIn the token exchange request, a valid id_token for the Agentic App must be presented as the `subject_token`. You may obtain this token through your own flow, or you may expand the below template authorize request to authenticate in a browser and use the request `(Optional) Auth code token request` in this collection to exchange an authorization code. This assumes that your Agentic App has `https://example.com` registered as a redirect_uri.\n\n`[orgUrl]/oauth2/v1/authorize?redirect_uri=https://example.com&response_type=code&state=state&nonce=nonce&scope=openid&client_id=[agenticAppId]`\n\nThe relevant value will be in the query string of the final redirect once you have authenticated. Copy the `code` value, and insert it into the same parameter in the request body of the postman request.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "9663231"
+	},
+	"item": [
+		{
+			"name": "Token Exchange Request",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var jwk = JSON.parse(pm.variables.get(\"privateJWK\"));",
+							"var key = await crypto.subtle.importKey(\"jwk\",",
+							"                              jwk,",
+							"                              {name: \"RSASSA-PKCS1-v1_5\", hash: \"SHA-256\"},",
+							"                              true,",
+							"                              [\"sign\"]);",
+							"var now = new Date();",
+							"var epochTime = Math.floor(now.getTime() / 1000);",
+							"",
+							"var header = {",
+							"  \"kid\": jwk.kid,",
+							"  \"alg\": \"RS256\"",
+							"};",
+							"var payload = {",
+							"  \"iss\": pm.variables.get(\"principalId\"),",
+							"  \"aud\": pm.variables.get(\"orgUrl\") + \"/oauth2/v1/token\",",
+							"  \"sub\": pm.variables.get(\"principalId\"),",
+							"  \"exp\" : epochTime + 60,",
+							"  \"iat\" : epochTime,",
+							"  \"jti\" : pm.variables.replaceIn('{{$randomUUID}}')",
+							"};",
+							"console.log(payload);",
+							"var encoder = new TextEncoder();",
+							"",
+							"function b64u(input) {",
+							"  if (input instanceof ArrayBuffer) {",
+							"    input = new Uint8Array(input);",
+							"  }",
+							"",
+							"  const arr = [];",
+							"  for (let i = 0; i < input.byteLength; i += 0x8000) {",
+							"    arr.push(String.fromCharCode.apply(null, input.subarray(i, i + 0x8000)));",
+							"  }",
+							"  return btoa(arr.join('')).replace(/=/g, '').replace(/\\+/g, '-').replace(/\\//g, '_');",
+							"}",
+							"",
+							"const head = b64u(encoder.encode(JSON.stringify(header)));",
+							"const body = b64u(encoder.encode(JSON.stringify(payload)));",
+							"const sig = await crypto.subtle.sign({name: \"RSASSA-PKCS1-v1_5\", hash: \"SHA-256\"}, key, encoder.encode(head + \".\" + body));",
+							"const otherSig = b64u(sig);",
+							"const jwt = head +\".\" + body + \".\" + otherSig;",
+							"",
+							"console.log(jwt);",
+							"",
+							"pm.variables.set(\"clientCreds\", jwt);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var response = pm.response.json();",
+							"console.log(response);",
+							"console.log(\"Acquired id_jag: \" + response.access_token)",
+							"pm.collectionVariables.set(\"id_jag\", response.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:token-exchange",
+							"type": "text"
+						},
+						{
+							"key": "requested_token_type",
+							"value": "urn:ietf:params:oauth:token-type:id-jag",
+							"type": "text"
+						},
+						{
+							"key": "subject_token",
+							"value": "eyJraWQiOiIxa2FHaEpLWTZFQlloek82d08yMzQwaFk5MW9vbEtWOGxEUVJpckFWYjBnIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULnF4dU1VaHZROWNmaTJnajRfRmhTUnp5YThSYWVCNUZlT3E4aXpTVlN4ZVkiLCJpc3MiOiJodHRwczovL2FnZW50cy1kZWxsLm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6ImFwaTovL2RlZmF1bHQiLCJpYXQiOjE3NjY2OTYzNTMsImV4cCI6MTc2NjY5OTk1MywiY2lkIjoiMG9hc3Q0bjYxbmI0cEVuTFcxZDciLCJ1aWQiOiIwMHVzazBscGhnaDhmREh1ajFkNyIsInNjcCI6WyJlbWFpbCIsInByb2ZpbGUiLCJvcGVuaWQiXSwiYXV0aF90aW1lIjoxNzY2Njk2MzM0LCJzdWIiOiJpbmRyYW5pbC5qaGFAb2t0YS5jb20ifQ.uXuzGmrx58W63ZXMzsTAREu6EHZ2EAffLr3K5lXoP65ADSLqB3EZ_B0Ja5SDaGV306yVLy95r7nIVB6BiQ1Qi5JpSrPqyovuZQsrp3PLdZfD3i0rT4huiLq7h2VpmyHjqQtr83boXP07Xd5SLkX-d-y2rIii2kArQaiCPyIXC1kafsfbDks1CfdG5Ld2okarEPOGEsP4uyn2-2YlrB76nmYJyHYtd0rEkr7BdnpNsHZcL-2bFsirE_UXArGagbH5WNYNiYrPLcHlRqEDKj2cIVhd9J0OzYcRHqcbLVCaysBRrTEjVoidvK-I3QEB38eLXy5fkBG37vgJ6ow4eW7a3Q",
+							"type": "text"
+						},
+						{
+							"key": "subject_token_type",
+							"value": "urn:ietf:params:oauth:token-type:access_token",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion_type",
+							"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion",
+							"value": "{{clientCreds}}",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "{{orgUrl}}/oauth2/{{authorizationServerId}}",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "mcp:read",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{orgUrl}}/oauth2/v1/token",
+					"host": [
+						"{{orgUrl}}"
+					],
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Authorization Server Request",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var jwk = JSON.parse(pm.variables.get(\"privateJWK\"));",
+							"var key = await crypto.subtle.importKey(\"jwk\",",
+							"                              jwk,",
+							"                              {name: \"RSASSA-PKCS1-v1_5\", hash: \"SHA-256\"},",
+							"                              true,",
+							"                              [\"sign\"]);",
+							"var now = new Date() / 1000;",
+							"",
+							"var header = {",
+							"  \"kid\": jwk.kid,",
+							"  \"alg\": \"RS256\"",
+							"};",
+							"var payload = {",
+							"  \"iss\": pm.variables.get(\"principalId\"),",
+							"  \"aud\": pm.variables.get(\"orgUrl\") + \"/oauth2/\" + pm.variables.get(\"authorizationServerId\") + \"/v1/token\",",
+							"  \"sub\": pm.variables.get(\"principalId\"),",
+							"  \"exp\" : now + 60,",
+							"  \"iat\" : now,",
+							"  \"jti\" : pm.variables.replaceIn('{{$randomUUID}}')",
+							"};",
+							"var encoder = new TextEncoder();",
+							"",
+							"function b64u(input) {",
+							"  if (input instanceof ArrayBuffer) {",
+							"    input = new Uint8Array(input);",
+							"  }",
+							"",
+							"  const arr = [];",
+							"  for (let i = 0; i < input.byteLength; i += 0x8000) {",
+							"    arr.push(String.fromCharCode.apply(null, input.subarray(i, i + 0x8000)));",
+							"  }",
+							"  return btoa(arr.join('')).replace(/=/g, '').replace(/\\+/g, '-').replace(/\\//g, '_');",
+							"}",
+							"",
+							"const head = b64u(encoder.encode(JSON.stringify(header)));",
+							"const body = b64u(encoder.encode(JSON.stringify(payload)));",
+							"const sig = await crypto.subtle.sign({name: \"RSASSA-PKCS1-v1_5\", hash: \"SHA-256\"}, key, encoder.encode(head + \".\" + body));",
+							"const otherSig = b64u(sig);",
+							"const jwt = head +\".\" + body + \".\" + otherSig;",
+							"",
+							"pm.variables.set(\"clientCreds\", jwt);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+							"type": "text"
+						},
+						{
+							"key": "assertion",
+							"value": "{{id_jag}}",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion_type",
+							"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion",
+							"value": "{{clientCreds}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{orgUrl}}/oauth2/{{authorizationServerId}}/v1/token",
+					"host": [
+						"{{orgUrl}}"
+					],
+					"path": [
+						"oauth2",
+						"{{authorizationServerId}}",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "(Optional) Auth code token request",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{agenticAppId}}",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "authorization_code",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/authorization-code/callback",
+							"type": "text"
+						},
+						{
+							"key": "code",
+							"value": "3LClS9Zn3TXhvWsyBPfpgQ2G3Jkt-JrlJL0FNP2Qq44",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{agenticAppSecret}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{orgUrl}}/oauth2/v1/token",
+					"host": [
+						"{{orgUrl}}"
+					],
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "orgUrl",
+			"value": ""
+		},
+		{
+			"key": "agenticAppId",
+			"value": ""
+		},
+		{
+			"key": "agenticAppSecret",
+			"value": ""
+		},
+		{
+			"key": "principalId",
+			"value": ""
+		},
+		{
+			"key": "privateJWK",
+			"value": ""
+		},
+		{
+			"key": "authorizationServerId",
+			"value": ""
+		},
+		{
+			"key": "id_jag",
+			"value": ""
+		}
+	]
+}

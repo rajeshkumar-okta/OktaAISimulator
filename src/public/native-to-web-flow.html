@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Native SSO to Web - Okta</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">← All Flows</a>
+    </nav>
+    <header>
+      <h1>Native SSO to Web</h1>
+      <p class="subtitle">Device SSO Token Exchange for Native-to-Web Single Sign-On</p>
+    </header>
+
+    <!-- Configuration Panel -->
+    <details class="config-panel" id="config-panel" open>
+      <summary>
+        Configuration <span class="config-status" id="config-status"></span>
+        <button class="btn-icon" id="load-saved-btn" title="Load saved configuration">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3.5A1.5 1.5 0 013.5 2h2.879a1.5 1.5 0 011.06.44l1.122 1.12A1.5 1.5 0 009.62 4H12.5A1.5 1.5 0 0114 5.5v7a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 12.5v-9z"/></svg>
+        </button>
+      </summary>
+      <div class="config-fields">
+        <div class="config-row">
+          <label for="cfg-oktaDomain">Okta Domain</label>
+          <input type="text" id="cfg-oktaDomain" placeholder="https://your-domain.okta.com">
+        </div>
+        <div class="config-section-divider">
+          <span>Native Application</span>
+        </div>
+        <div class="config-row-split">
+          <div class="config-row-half">
+            <label for="cfg-nativeClientId">Native App Client ID</label>
+            <input type="text" id="cfg-nativeClientId" placeholder="Native app Client ID">
+          </div>
+          <div class="config-row-half">
+            <label for="cfg-nativeClientSecret">Native App Client Secret <span class="label-optional">(if confidential)</span></label>
+            <input type="password" id="cfg-nativeClientSecret" placeholder="Native app secret">
+          </div>
+        </div>
+        <div class="config-row-split">
+          <div class="config-row-half">
+            <label for="cfg-authMethod">Primary Authentication Method</label>
+            <select id="cfg-authMethod">
+              <option value="password">Password (otp)</option>
+              <option value="oob">Out-of-Band (push, SMS, voice)</option>
+              <option value="otp">One-Time Password (TOTP, email OTP)</option>
+            </select>
+          </div>
+          <div class="config-row-half">
+            <label for="cfg-mfaMethod">MFA Method <span class="label-optional">(if required)</span></label>
+            <select id="cfg-mfaMethod">
+              <option value="">None</option>
+              <option value="oob">Out-of-Band (push, SMS)</option>
+              <option value="otp">One-Time Password</option>
+            </select>
+          </div>
+        </div>
+        <div class="config-row">
+          <label for="cfg-authServerMode">Authorization Server</label>
+          <div class="redirect-uri-group">
+            <select id="cfg-authServerMode">
+              <option value="org">Org Authorization Server (v1)</option>
+              <option value="default">Default Custom Auth Server</option>
+              <option value="custom">Custom Auth Server ID</option>
+            </select>
+            <input type="text" id="cfg-authorizationServerId" placeholder="Custom Auth Server ID" hidden>
+            <span class="auth-server-preview" id="auth-server-preview"></span>
+          </div>
+        </div>
+        <div class="config-row">
+          <label>Scopes <span class="label-optional">(should include interclient_access)</span></label>
+          <div class="scope-selector" id="scope-selector">
+            <div class="scope-tiles" id="scope-tiles">
+              <span class="scope-loading" id="scope-loading">Configure Okta Domain and Auth Server to load scopes</span>
+            </div>
+            <div class="scope-custom-input">
+              <input type="text" id="scope-custom-input" placeholder="Add custom scope...">
+              <button type="button" class="btn btn-small btn-secondary" id="scope-add-btn">Add</button>
+            </div>
+          </div>
+          <input type="hidden" id="cfg-scopes" value="openid profile email offline_access interclient_access">
+        </div>
+        <div class="config-section-divider">
+          <span>Web Application</span>
+        </div>
+        <div class="config-row-split">
+          <div class="config-row-half">
+            <label for="cfg-webClientId">Web App Client ID</label>
+            <input type="text" id="cfg-webClientId" placeholder="Web app Client ID">
+          </div>
+          <div class="config-row-half">
+            <label for="cfg-webClientSecret">Web App Client Secret</label>
+            <input type="password" id="cfg-webClientSecret" placeholder="Web app secret">
+          </div>
+        </div>
+        <div class="config-row">
+          <label for="cfg-webRedirectUri">Web App Redirect URI</label>
+          <input type="text" id="cfg-webRedirectUri" placeholder="https://your-web-app.com/callback">
+        </div>
+        <div class="config-row">
+          <label for="cfg-webAuthServerMode">Web App Authorization Server</label>
+          <div class="redirect-uri-group">
+            <select id="cfg-webAuthServerMode">
+              <option value="org">Org Authorization Server (v1)</option>
+              <option value="default">Default Custom Auth Server</option>
+              <option value="custom">Custom Auth Server ID</option>
+            </select>
+            <input type="text" id="cfg-webAuthorizationServerId" placeholder="Custom Auth Server ID" hidden>
+            <span class="auth-server-preview" id="web-auth-server-preview"></span>
+          </div>
+        </div>
+        <div class="config-row">
+          <label>Web App Scopes</label>
+          <div class="scope-selector" id="web-scope-selector">
+            <div class="scope-tiles" id="web-scope-tiles">
+              <span class="scope-loading" id="web-scope-loading">Configure Okta Domain and Auth Server to load scopes</span>
+            </div>
+            <div class="scope-custom-input">
+              <input type="text" id="web-scope-custom-input" placeholder="Add custom scope...">
+              <button type="button" class="btn btn-small btn-secondary" id="web-scope-add-btn">Add</button>
+            </div>
+          </div>
+          <input type="hidden" id="cfg-webScopes" value="openid profile email">
+        </div>
+        <div class="config-section-divider">
+          <span>Notes</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-note">Note <span class="label-optional">(optional)</span></label>
+          <textarea id="cfg-note" rows="2" placeholder="Any notes about this configuration..."></textarea>
+        </div>
+        <div class="config-actions">
+          <button class="btn btn-primary btn-small" id="save-config-btn">Save to Browser</button>
+          <button class="btn btn-primary btn-small" id="save-server-btn">Save to Server</button>
+          <button class="btn btn-secondary btn-small" id="clear-config-btn">Clear Saved</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- Save Config Modal -->
+    <div class="modal-overlay" id="save-modal" hidden>
+      <div class="modal modal-dialog">
+        <div class="modal-header">
+          <h3>Save Configuration</h3>
+        </div>
+        <div class="modal-body">
+          <div class="save-mode-toggle">
+            <label class="save-mode-option">
+              <input type="radio" name="save-mode" value="new" checked>
+              <span>Save as New</span>
+            </label>
+            <label class="save-mode-option">
+              <input type="radio" name="save-mode" value="overwrite">
+              <span>Overwrite Existing</span>
+            </label>
+          </div>
+          <div class="dialog-field" id="save-new-field">
+            <label for="save-name">Configuration Name</label>
+            <input type="text" id="save-name" class="dialog-input" placeholder="e.g. Dev Environment">
+          </div>
+          <div class="dialog-field" id="save-overwrite-field" hidden>
+            <label for="save-existing">Select Configuration</label>
+            <select id="save-existing" class="dialog-select">
+              <option value="">Loading...</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-small" id="save-modal-cancel">Cancel</button>
+          <button class="btn btn-primary btn-small" id="save-modal-ok">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Configs Modal -->
+    <div class="modal-overlay" id="configs-modal" hidden>
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Saved Configurations</h3>
+          <button class="btn-icon" id="close-modal-btn" title="Close">&times;</button>
+        </div>
+        <div class="modal-body" id="configs-list">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow Steps -->
+    <div class="stepper">
+      <div class="stepper-header">
+        <span>Native to Web SSO Flow</span>
+        <div class="stepper-actions">
+          <button id="view-logs-btn" class="btn btn-secondary btn-small">View Logs</button>
+          <button id="reset-btn" class="btn btn-secondary btn-small">Reset</button>
+        </div>
+      </div>
+
+      <!-- Step 1: Native App Authentication -->
+      <div class="step" id="step-1">
+        <div class="step-header">
+          <span class="step-number">1</span>
+          <div class="step-info">
+            <span class="actor actor-app">Native App</span>
+            <h3>Primary Authentication</h3>
+            <p>Authenticate the user in the native application using Direct Authentication to obtain tokens with the interclient_access scope for cross-application SSO.</p>
+          </div>
+        </div>
+        <div class="auth-form" id="auth-form">
+          <div class="auth-form-row">
+            <label for="auth-username">Username / Email</label>
+            <input type="text" id="auth-username" placeholder="user@example.com">
+          </div>
+          <div class="auth-form-row" id="password-row">
+            <label for="auth-password">Password</label>
+            <input type="password" id="auth-password" placeholder="Enter password">
+          </div>
+          <div class="auth-form-row" id="otp-row" hidden>
+            <label for="auth-otp">One-Time Password</label>
+            <input type="text" id="auth-otp" placeholder="Enter OTP code" maxlength="6">
+          </div>
+          <div class="auth-form-actions">
+            <button class="btn btn-primary" id="btn-step-1">Authenticate</button>
+            <a href="#" class="use-existing-link" id="use-existing-link">Use existing token</a>
+          </div>
+        </div>
+        <div class="use-existing-panel" id="existing-token-panel" hidden>
+          <p class="existing-token-note">Paste an existing ID token (obtained with interclient_access scope)</p>
+          <label for="existing-id-token">ID Token with Device Secret:</label>
+          <textarea id="existing-id-token" rows="4" placeholder="Paste your ID token here..."></textarea>
+          <div class="use-existing-actions">
+            <button class="btn btn-primary btn-small" id="btn-use-existing">Use Token</button>
+            <button class="btn-link" id="btn-cancel-existing">Cancel</button>
+          </div>
+        </div>
+        <details class="curl-section">
+          <summary>cURL Command</summary>
+          <pre class="curl-box" id="curl-1"></pre>
+        </details>
+        <div class="step-result" id="result-1"></div>
+      </div>
+
+      <!-- Step 2: MFA Challenge (if required) -->
+      <div class="step locked" id="step-mfa">
+        <div class="step-header">
+          <span class="step-number">2</span>
+          <div class="step-info">
+            <span class="actor actor-agent">MFA</span>
+            <h3>MFA Challenge</h3>
+            <p>If MFA is required, complete the additional authentication factor. This may involve OTP or push notification.</p>
+          </div>
+        </div>
+        <div class="mfa-form" id="mfa-form" hidden>
+          <div class="mfa-challenge-info" id="mfa-challenge-info">
+            <p>Waiting for MFA challenge...</p>
+          </div>
+          <div class="auth-form-row" id="mfa-otp-row" hidden>
+            <label for="mfa-otp">Enter MFA Code</label>
+            <input type="text" id="mfa-otp" placeholder="Enter code" maxlength="6">
+          </div>
+          <div class="mfa-oob-status" id="mfa-oob-status" hidden>
+            <div class="polling-status">
+              <div class="polling-spinner"></div>
+              <span>Waiting for push approval...</span>
+            </div>
+          </div>
+          <div class="auth-form-actions">
+            <button class="btn btn-primary" id="btn-step-mfa" disabled>Verify MFA</button>
+          </div>
+        </div>
+        <details class="curl-section">
+          <summary>cURL Command</summary>
+          <pre class="curl-box" id="curl-mfa"></pre>
+        </details>
+        <div class="step-result" id="result-mfa"></div>
+      </div>
+
+      <!-- Step 3: Get Device Secret -->
+      <div class="step locked" id="step-2">
+        <div class="step-header">
+          <span class="step-number">3</span>
+          <div class="step-info">
+            <span class="actor actor-app">Native App</span>
+            <h3>Extract Device Secret</h3>
+            <p>Extract the device secret from the ID token. This secret is used to establish SSO to web applications.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-step-2" disabled>Extract Secret</button>
+        </div>
+        <div class="step-result" id="result-2"></div>
+      </div>
+
+      <!-- Step 4: Exchange for Web SSO Token -->
+      <div class="step locked" id="step-3">
+        <div class="step-header">
+          <span class="step-number">4</span>
+          <div class="step-info">
+            <span class="actor actor-agent">Exchange</span>
+            <h3>Exchange for Web SSO Token</h3>
+            <p>Exchange the device secret and ID token for a Web SSO token that can be used to establish a web session.</p>
+            <div class="step-option">
+              <code class="uri-template" id="token-endpoint-preview">/oauth2/v1/token</code>
+              <span class="grant-type">grant_type=urn:ietf:params:oauth:grant-type:token-exchange</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-step-3" disabled>Get Web SSO Token</button>
+        </div>
+        <details class="curl-section">
+          <summary>cURL Command</summary>
+          <pre class="curl-box" id="curl-3"></pre>
+        </details>
+        <div class="step-result" id="result-3"></div>
+      </div>
+
+      <!-- Step 5: Launch Web Session -->
+      <div class="step locked" id="step-4">
+        <div class="step-header">
+          <span class="step-number">5</span>
+          <div class="step-info">
+            <span class="actor actor-mcp">Web App</span>
+            <h3>Launch Web Session</h3>
+            <p>Use the Web SSO token to launch the web application with an established session. The user will be automatically signed in.</p>
+            <div class="step-option">
+              <code class="uri-template" id="authorize-endpoint-preview">/oauth2/v1/authorize</code>
+              <span class="grant-type">login_hint=&lt;web_sso_token&gt;</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-step-4" disabled>Launch Web App</button>
+        </div>
+        <details class="curl-section">
+          <summary>Authorization URL</summary>
+          <pre class="curl-box" id="curl-4"></pre>
+        </details>
+        <div class="step-result" id="result-4"></div>
+      </div>
+    </div>
+
+    <!-- Token Details Section -->
+    <div class="token-details" id="token-details" hidden>
+      <h3>Token Details</h3>
+      <div class="token-tabs">
+        <button class="token-tab active" data-tab="id-token">ID Token</button>
+        <button class="token-tab" data-tab="device-secret">Device Secret</button>
+        <button class="token-tab" data-tab="web-sso-token">Web SSO Token</button>
+      </div>
+      <div class="token-content" id="token-content"></div>
+    </div>
+  </div>
+
+  <style>
+    .auth-form {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+    }
+    .auth-form-row {
+      margin-bottom: 0.75rem;
+    }
+    .auth-form-row label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 0.25rem;
+    }
+    .auth-form-row input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .auth-form-row input:focus {
+      outline: none;
+      border-color: #0066cc;
+    }
+    .auth-form-actions {
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .auth-form-actions .use-existing-link {
+      font-size: 0.8rem;
+      color: #666;
+    }
+    .mfa-form {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+    }
+    .mfa-challenge-info {
+      padding: 0.75rem;
+      background: #fffbeb;
+      border: 1px solid #fbbf24;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+    .mfa-challenge-info p {
+      font-size: 0.85rem;
+      color: #92400e;
+      margin: 0;
+    }
+    .mfa-oob-status {
+      margin-bottom: 1rem;
+    }
+    .polling-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: #f0f9ff;
+      border: 1px solid #0284c7;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: #0369a1;
+    }
+    .polling-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #0284c7;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
+  <!-- Dialog Modal -->
+  <div class="modal-overlay" id="dialog-modal" hidden>
+    <div class="modal modal-dialog">
+      <div class="modal-header">
+        <h3 id="dialog-title">Message</h3>
+      </div>
+      <div class="modal-body">
+        <p id="dialog-message"></p>
+        <input type="text" id="dialog-input" class="dialog-input" hidden>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-small" id="dialog-cancel" hidden>Cancel</button>
+        <button class="btn btn-primary btn-small" id="dialog-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check authentication before loading app
+    (function() {
+      const CURRENT_USER_KEY = 'okta_current_user';
+      const SESSION_HOURS = 24;
+
+      function isAuthenticated() {
+        const userJson = localStorage.getItem(CURRENT_USER_KEY);
+        if (!userJson) return false;
+        try {
+          const user = JSON.parse(userJson);
+          if (!user.authenticatedAt) return false;
+          const authTime = new Date(user.authenticatedAt);
+          const hoursSinceAuth = (Date.now() - authTime.getTime()) / (1000 * 60 * 60);
+          return hoursSinceAuth < SESSION_HOURS;
+        } catch { return false; }
+      }
+
+      if (!isAuthenticated()) {
+        window.location.href = '/login.html';
+      }
+    })();
+  </script>
+  <script src="native-to-web-app.js"></script>
+</body>
+</html>

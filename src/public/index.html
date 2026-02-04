@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Okta Authentication Flows</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      color: #e0e0e0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      color: #a0a0a0;
+      font-size: 1rem;
+    }
+
+    .user-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #a0a0a0;
+    }
+
+    .user-info .user-name {
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .user-bar .btn-link {
+      color: #a0c4ff;
+      text-decoration: none;
+      font-size: 0.8rem;
+      transition: color 0.15s;
+    }
+
+    .user-bar .btn-link:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    /* Settings dropdown */
+    .settings-dropdown {
+      position: relative;
+    }
+
+    .settings-dropdown-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.75rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .settings-dropdown-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .settings-dropdown-btn .dropdown-arrow {
+      font-size: 0.6rem;
+      transition: transform 0.15s;
+    }
+
+    .settings-dropdown.open .dropdown-arrow {
+      transform: rotate(180deg);
+    }
+
+    .settings-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      min-width: 200px;
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: all 0.15s ease;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .settings-dropdown.open .settings-dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .settings-dropdown-menu a {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.7rem 1rem;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: background 0.1s;
+    }
+
+    .settings-dropdown-menu a:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .settings-dropdown-menu a .menu-icon {
+      font-size: 1rem;
+      width: 1.2rem;
+      text-align: center;
+    }
+
+    .settings-dropdown-menu .menu-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 0.25rem 0;
+    }
+
+    .settings-dropdown-menu a.menu-logout {
+      color: #f87171;
+    }
+
+    .settings-dropdown-menu a.menu-logout:hover {
+      background: rgba(248, 113, 113, 0.1);
+    }
+
+    /* Configs Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-dialog {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 700px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(-20px);
+      transition: transform 0.2s;
+    }
+
+    .modal-overlay.open .modal-dialog {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-header h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: #a0a0a0;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: #fff;
+    }
+
+    .modal-body {
+      padding: 1rem 1.25rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .configs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .config-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+    }
+
+    .config-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .config-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .config-item-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .config-item-name {
+      font-weight: 500;
+      color: #fff;
+      font-size: 0.9rem;
+    }
+
+    .config-item-meta {
+      font-size: 0.75rem;
+      color: #a0a0a0;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .config-item-type {
+      background: rgba(100, 100, 255, 0.25);
+      color: #a0c4ff;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      white-space: nowrap;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+
+    a.config-item-type:hover {
+      background: rgba(100, 100, 255, 0.4);
+      color: #fff;
+    }
+
+    .config-item-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-left: 1rem;
+    }
+
+    .config-item-actions button {
+      padding: 0.35rem 0.6rem;
+      border-radius: 4px;
+      border: none;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-delete {
+      background: rgba(248, 113, 113, 0.2);
+      color: #f87171;
+    }
+
+    .btn-delete:hover {
+      background: rgba(248, 113, 113, 0.3);
+    }
+
+    .configs-empty {
+      text-align: center;
+      padding: 2rem;
+      color: #a0a0a0;
+    }
+
+    .configs-loading {
+      text-align: center;
+      padding: 2rem;
+      color: #a0a0a0;
+    }
+
+    .config-type-filter {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 0.4rem 0.8rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      color: #a0a0a0;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .filter-btn.active {
+      background: rgba(100, 100, 255, 0.2);
+      border-color: rgba(100, 100, 255, 0.4);
+      color: #a0c4ff;
+    }
+
+    .idp-badge {
+      background: rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .tiles {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .tiles {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .tile {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      min-height: 200px;
+    }
+
+    .tile:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .tile.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .tile.disabled:hover {
+      transform: none;
+      box-shadow: none;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tile-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .tile h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    .tile p {
+      font-size: 0.85rem;
+      color: #a0a0a0;
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .tile-status {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      display: inline-block;
+      align-self: flex-start;
+    }
+
+    .tile-status.active {
+      background: rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+    }
+
+    .tile-status.coming-soon {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+    }
+
+    .tile-tags {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .tile-tag {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      background: rgba(100, 100, 255, 0.2);
+      color: #a0c4ff;
+      border-radius: 3px;
+    }
+
+    /* Section for custom flows */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .section-header h2 {
+      font-size: 1.1rem;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .section-header .section-badge {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .section-badge.draft {
+      background: rgba(156, 163, 175, 0.3);
+      color: #9ca3af;
+    }
+
+    .section-badge.testing {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+    }
+
+    /* Small tiles for draft/testing flows */
+    .tiles-small {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .tile-small {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+      min-width: 200px;
+    }
+
+    .tile-small:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .tile-small .tile-icon {
+      font-size: 1.5rem;
+      margin: 0;
+    }
+
+    .tile-small .tile-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tile-small .tile-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tile-small .tile-state {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    .tile-state.draft {
+      background: rgba(156, 163, 175, 0.3);
+      color: #9ca3af;
+    }
+
+    .tile-state.testing {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+    }
+
+    .tile-state.ready {
+      background: rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+    }
+
+    .disclaimer {
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .disclaimer-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: #fbbf24;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .disclaimer-text {
+      color: #d4d4d4;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .disclaimer-text strong {
+      color: #fbbf24;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="user-bar" id="user-bar" style="display: none;">
+      <div class="user-info">
+        <span class="idp-badge" id="idp-name"></span>
+        <span>Signed in as <span class="user-name" id="user-name"></span></span>
+      </div>
+      <div class="settings-dropdown" id="settings-dropdown">
+        <button type="button" class="settings-dropdown-btn" id="settings-dropdown-btn">
+          <span>Settings</span>
+          <span class="dropdown-arrow">▼</span>
+        </button>
+        <div class="settings-dropdown-menu">
+          <a href="#" id="manage-configs-btn">
+            <span class="menu-icon">💾</span>
+            <span>Saved Configurations</span>
+          </a>
+          <a href="/manage-idps.html">
+            <span class="menu-icon">🔐</span>
+            <span>Manage IdPs</span>
+          </a>
+          <a href="/log-viewer.html" target="_blank">
+            <span class="menu-icon">📋</span>
+            <span>View Logs</span>
+          </a>
+          <div class="menu-divider"></div>
+          <a href="/docs/flow-builder.html" target="_blank">
+            <span class="menu-icon">📖</span>
+            <span>Flow Builder Guide</span>
+          </a>
+          <div class="menu-divider"></div>
+          <a href="#" class="menu-logout" id="logout-btn">
+            <span class="menu-icon">🚪</span>
+            <span>Logout</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Configurations Modal -->
+    <div class="modal-overlay" id="configs-modal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>Saved Configurations</h3>
+          <button type="button" class="modal-close" id="configs-modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="config-type-filter" id="config-type-filter">
+            <button class="filter-btn active" data-type="all">All</button>
+          </div>
+          <div class="configs-list" id="configs-list">
+            <div class="configs-loading">Loading configurations...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <header>
+      <h1>Okta Authentication Flows</h1>
+      <p>Interactive simulators for OAuth 2.0 and OpenID Connect flows</p>
+    </header>
+
+    <div class="disclaimer">
+      <div class="disclaimer-title">
+        <span>⚠️</span>
+        <span>Demonstration & Learning Tool Only</span>
+      </div>
+      <div class="disclaimer-text">
+        This application is intended for <strong>demonstration and learning purposes only</strong>.
+        It intentionally exposes security secrets (tokens, keys, assertions) that would typically not be accessible to clients.
+        <strong>All secrets should be cycled after use</strong> to ensure proper security measures are maintained.
+      </div>
+    </div>
+
+    <div class="tiles">
+      <!-- Tile 1: Authorization Code Flow -->
+      <a href="/auth-code-flow.html" class="tile">
+        <div class="tile-icon">🔑</div>
+        <h2>Authorization Code Flow</h2>
+        <p>Standard OAuth 2.0 Authorization Code flow with PKCE for secure authentication in web and native applications.</p>
+        <div class="tile-tags">
+          <span class="tile-tag">OAuth 2.0</span>
+          <span class="tile-tag">PKCE</span>
+          <span class="tile-tag">OIDC</span>
+        </div>
+        <span class="tile-status active">Available</span>
+      </a>
+
+      <!-- Tile 3: Agentic Token Exchange -->
+      <a href="/agentic-token-exchange.html" class="tile">
+        <div class="tile-icon">🤖</div>
+        <h2>Agentic Token Exchange Flow</h2>
+        <p>Demonstrates the invocation of our User to AI Agent delegation using ID-JAG tokens.</p>
+        <div class="tile-tags">
+          <span class="tile-tag">OAuth 2.0</span>
+          <span class="tile-tag">RFC 8693</span>
+          <span class="tile-tag">ID-JAG</span>
+        </div>
+        <span class="tile-status active">Available</span>
+      </a>
+
+      <!-- Tile 4: Device Authorization Grant -->
+      <a href="/device-grant-flow.html" class="tile">
+        <div class="tile-icon">📺</div>
+        <h2>Device Authorization Grant</h2>
+        <p>OAuth 2.0 Device Authorization Grant for input-constrained devices like smart TVs, CLI tools, and IoT devices. Users authorize on a secondary device.</p>
+        <div class="tile-tags">
+          <span class="tile-tag">RFC 8628</span>
+          <span class="tile-tag">OAuth 2.0</span>
+          <span class="tile-tag">Device Flow</span>
+        </div>
+        <span class="tile-status active">Available</span>
+      </a>
+
+      <!-- Tile 5: Token Exchange -->
+      <a href="/token-exchange-flow.html" class="tile">
+        <div class="tile-icon">🔄</div>
+        <h2>Token Exchange</h2>
+        <p>RFC 8693 Token Exchange for exchanging tokens between different token types, impersonation, and delegation scenarios.</p>
+        <div class="tile-tags">
+          <span class="tile-tag">RFC 8693</span>
+          <span class="tile-tag">OAuth 2.0</span>
+          <span class="tile-tag">Delegation</span>
+        </div>
+        <span class="tile-status active">Available</span>
+      </a>
+
+      <!-- Tile 6: Native SSO to Web -->
+      <a href="/native-to-web-flow.html" class="tile">
+        <div class="tile-icon">🌐</div>
+        <h2>Native SSO to Web</h2>
+        <p>Seamless single sign-on from native mobile applications to web applications using device SSO tokens and session transfer.</p>
+        <div class="tile-tags">
+          <span class="tile-tag">Device SSO</span>
+          <span class="tile-tag">Native Apps</span>
+          <span class="tile-tag">Web SSO</span>
+        </div>
+        <span class="tile-status active">Available</span>
+      </a>
+
+      <!-- Tile 7: Direct Authentication -->
+      <a href="/direct-auth-flow.html" class="tile">
+        <div class="tile-icon">⚡</div>
+        <h2>Direct Authentication</h2>
+        <p>Okta's Direct Authentication API for passwordless and MFA flows without browser redirects. Supports OTP, push notifications, and WebAuthn.</p>
+        <div class="tile-tags">
+          <span class="tile-tag">OIE</span>
+          <span class="tile-tag">Passwordless</span>
+          <span class="tile-tag">MFA</span>
+        </div>
+        <span class="tile-status active">Available</span>
+      </a>
+    </div>
+
+    <!-- Custom/JSON-Driven Flows Section -->
+    <div id="custom-flows-section" style="display: none;">
+      <div class="section-header">
+        <h2>Custom Flows</h2>
+      </div>
+
+      <!-- Ready flows as full tiles -->
+      <div class="tiles" id="ready-flows-container"></div>
+
+      <!-- Draft & Testing flows as small icons -->
+      <div id="wip-flows-section" style="display: none;">
+        <div class="section-header">
+          <h2>Work in Progress</h2>
+        </div>
+        <div class="tiles-small" id="wip-flows-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const CURRENT_USER_KEY = 'okta_current_user';
+      const IDP_CONFIG_KEY = 'okta_idp_config';
+      const SESSION_HOURS = 24;
+
+      // Check if user is authenticated
+      function isAuthenticated() {
+        const userJson = localStorage.getItem(CURRENT_USER_KEY);
+        if (!userJson) return false;
+
+        try {
+          const user = JSON.parse(userJson);
+          if (!user.authenticatedAt) return false;
+
+          // Check session expiry
+          const authTime = new Date(user.authenticatedAt);
+          const now = new Date();
+          const hoursSinceAuth = (now - authTime) / (1000 * 60 * 60);
+          return hoursSinceAuth < SESSION_HOURS;
+        } catch {
+          return false;
+        }
+      }
+
+      // Redirect to login if not authenticated
+      if (!isAuthenticated()) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      // Load current user from localStorage
+      const userJson = localStorage.getItem(CURRENT_USER_KEY);
+      const idpJson = localStorage.getItem(IDP_CONFIG_KEY);
+
+      if (userJson) {
+        try {
+          const user = JSON.parse(userJson);
+          const idp = idpJson ? JSON.parse(idpJson) : null;
+
+          document.getElementById('user-bar').style.display = 'flex';
+          document.getElementById('user-name').textContent = user.name || user.email || user.sub;
+
+          if (idp && idp.oktaDomain) {
+            const hostname = new URL(idp.oktaDomain).hostname;
+            const parts = hostname.split('.');
+            document.getElementById('idp-name').textContent = parts[0] || 'IdP';
+          } else {
+            document.getElementById('idp-name').textContent = 'IdP';
+          }
+        } catch (e) {
+          console.error('Failed to parse user data', e);
+        }
+      }
+
+      // Settings dropdown toggle
+      const dropdown = document.getElementById('settings-dropdown');
+      const dropdownBtn = document.getElementById('settings-dropdown-btn');
+
+      dropdownBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdown.classList.toggle('open');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.remove('open');
+        }
+      });
+
+      // Logout handler
+      document.getElementById('logout-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        localStorage.removeItem(CURRENT_USER_KEY);
+        localStorage.removeItem(IDP_CONFIG_KEY);
+        window.location.href = '/login.html';
+      });
+
+      // Configurations modal
+      const configsModal = document.getElementById('configs-modal');
+      const configsList = document.getElementById('configs-list');
+      const configTypeFilter = document.getElementById('config-type-filter');
+      let allConfigs = [];
+      let currentFilter = 'all';
+
+      const flowTypeLabels = {
+        'device-grant-flow': 'Device Grant',
+        'auth-code-flow': 'Auth Code',
+        'agentic-flow': 'Agentic',
+        'token-exchange-flow': 'Token Exchange',
+        'native-to-web-flow': 'Native to Web',
+        'direct-auth-flow': 'Direct Auth'
+      };
+
+      const flowTypeUrls = {
+        'device-grant-flow': '/device-grant-flow.html',
+        'auth-code-flow': '/auth-code-flow.html',
+        'agentic-flow': '/agentic-token-exchange.html',
+        'token-exchange-flow': '/token-exchange-flow.html',
+        'native-to-web-flow': '/native-to-web-flow.html',
+        'direct-auth-flow': '/direct-auth-flow.html'
+      };
+
+      // Open configs modal
+      document.getElementById('manage-configs-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        dropdown.classList.remove('open');
+        configsModal.classList.add('open');
+        loadConfigs();
+      });
+
+      // Close configs modal
+      document.getElementById('configs-modal-close').addEventListener('click', function() {
+        configsModal.classList.remove('open');
+      });
+
+      configsModal.addEventListener('click', function(e) {
+        if (e.target === configsModal) {
+          configsModal.classList.remove('open');
+        }
+      });
+
+      // Load all configurations
+      async function loadConfigs() {
+        configsList.innerHTML = '<div class="configs-loading">Loading configurations...</div>';
+
+        try {
+          const res = await fetch('/api/configs');
+          allConfigs = await res.json();
+
+          // Build filter buttons
+          const types = [...new Set(allConfigs.map(c => c.configurationType))];
+          let filterHtml = '<button class="filter-btn active" data-type="all">All (' + allConfigs.length + ')</button>';
+          types.forEach(type => {
+            const count = allConfigs.filter(c => c.configurationType === type).length;
+            const label = flowTypeLabels[type] || type;
+            filterHtml += '<button class="filter-btn" data-type="' + type + '">' + label + ' (' + count + ')</button>';
+          });
+          configTypeFilter.innerHTML = filterHtml;
+
+          // Bind filter clicks
+          configTypeFilter.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+              currentFilter = this.dataset.type;
+              configTypeFilter.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+              this.classList.add('active');
+              renderConfigs();
+            });
+          });
+
+          renderConfigs();
+        } catch (err) {
+          configsList.innerHTML = '<div class="configs-empty">Failed to load configurations: ' + err.message + '</div>';
+        }
+      }
+
+      // Render configurations list
+      function renderConfigs() {
+        const filtered = currentFilter === 'all'
+          ? allConfigs
+          : allConfigs.filter(c => c.configurationType === currentFilter);
+
+        if (filtered.length === 0) {
+          configsList.innerHTML = '<div class="configs-empty">No saved configurations found.</div>';
+          return;
+        }
+
+        const currentUserSub = getCurrentUserSub();
+
+        configsList.innerHTML = filtered.map(config => {
+          const date = new Date(config.updatedAt).toLocaleDateString();
+          const typeLabel = flowTypeLabels[config.configurationType] || config.configurationType;
+          const canDelete = config.creator === currentUserSub;
+          const flowUrl = flowTypeUrls[config.configurationType];
+
+          const typeTag = flowUrl
+            ? '<a href="' + flowUrl + '" class="config-item-type">' + escapeHtml(typeLabel) + '</a>'
+            : '<span class="config-item-type">' + escapeHtml(typeLabel) + '</span>';
+
+          return '<div class="config-item" data-id="' + config.id + '">' +
+            '<div class="config-item-info">' +
+              '<div class="config-item-header">' +
+                '<span class="config-item-name">' + escapeHtml(config.name) + '</span>' +
+                typeTag +
+              '</div>' +
+              '<div class="config-item-meta">' +
+                '<span>by ' + escapeHtml(config.creator) + '</span>' +
+                '<span>' + date + '</span>' +
+              '</div>' +
+            '</div>' +
+            (canDelete ? '<div class="config-item-actions"><button class="btn-delete" data-id="' + config.id + '">Delete</button></div>' : '') +
+          '</div>';
+        }).join('');
+
+        // Bind delete buttons
+        configsList.querySelectorAll('.btn-delete').forEach(btn => {
+          btn.addEventListener('click', async function() {
+            if (!confirm('Delete this configuration?')) return;
+
+            const id = this.dataset.id;
+            const creator = getCurrentUserSub();
+
+            try {
+              const res = await fetch('/api/configs/' + id + '?creator=' + encodeURIComponent(creator), {
+                method: 'DELETE'
+              });
+
+              if (res.ok) {
+                allConfigs = allConfigs.filter(c => c.id !== id);
+                renderConfigs();
+                // Update filter counts
+                loadConfigs();
+              } else {
+                const data = await res.json();
+                alert('Failed to delete: ' + (data.error || 'Unknown error'));
+              }
+            } catch (err) {
+              alert('Failed to delete: ' + err.message);
+            }
+          });
+        });
+      }
+
+      function getCurrentUserSub() {
+        try {
+          const userJson = localStorage.getItem(CURRENT_USER_KEY);
+          if (userJson) {
+            const user = JSON.parse(userJson);
+            return user.sub || 'unknown';
+          }
+        } catch {}
+        return 'unknown';
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      // Load custom/JSON-driven flows
+      loadCustomFlows();
+
+      async function loadCustomFlows() {
+        try {
+          const res = await fetch('/api/flows');
+          const flows = await res.json();
+
+          if (!flows || flows.length === 0) return;
+
+          const readyFlows = flows.filter(f => f.state === 'ready');
+          const wipFlows = flows.filter(f => f.state === 'draft' || f.state === 'testing');
+
+          // Only show section if there are flows
+          if (readyFlows.length > 0 || wipFlows.length > 0) {
+            document.getElementById('custom-flows-section').style.display = 'block';
+          }
+
+          // Render ready flows as full tiles
+          if (readyFlows.length > 0) {
+            const readyContainer = document.getElementById('ready-flows-container');
+            readyContainer.innerHTML = readyFlows.map(flow => renderFullTile(flow)).join('');
+          }
+
+          // Render WIP flows as small tiles
+          if (wipFlows.length > 0) {
+            document.getElementById('wip-flows-section').style.display = 'block';
+            const wipContainer = document.getElementById('wip-flows-container');
+            wipContainer.innerHTML = wipFlows.map(flow => renderSmallTile(flow)).join('');
+          }
+        } catch (err) {
+          console.error('Failed to load custom flows:', err);
+        }
+      }
+
+      function renderFullTile(flow) {
+        const icon = getFlowIcon(flow.icon);
+        const tags = (flow.tags || []).map(tag =>
+          '<span class="tile-tag">' + escapeHtml(tag) + '</span>'
+        ).join('');
+
+        return '<a href="/flow.html?flow=' + escapeHtml(flow.id) + '" class="tile">' +
+          '<div class="tile-icon">' + icon + '</div>' +
+          '<h2>' + escapeHtml(flow.name) + '</h2>' +
+          '<p>' + escapeHtml(flow.description || flow.subtitle || '') + '</p>' +
+          (tags ? '<div class="tile-tags">' + tags + '</div>' : '') +
+          '<span class="tile-status active">Available</span>' +
+        '</a>';
+      }
+
+      function renderSmallTile(flow) {
+        const icon = getFlowIcon(flow.icon);
+        const stateClass = flow.state || 'draft';
+
+        return '<a href="/flow.html?flow=' + escapeHtml(flow.id) + '" class="tile-small">' +
+          '<div class="tile-icon">' + icon + '</div>' +
+          '<div class="tile-info">' +
+            '<div class="tile-name">' + escapeHtml(flow.name) + '</div>' +
+          '</div>' +
+          '<span class="tile-state ' + stateClass + '">' + escapeHtml(stateClass) + '</span>' +
+        '</a>';
+      }
+
+      function getFlowIcon(iconName) {
+        const icons = {
+          'tv': '📺',
+          'key': '🔑',
+          'lock': '🔒',
+          'user': '👤',
+          'server': '🖥️',
+          'link': '🔗',
+          'robot': '🤖',
+          'refresh': '🔄',
+          'globe': '🌐',
+          'bolt': '⚡',
+          'book': '📖'
+        };
+        return icons[iconName] || '📄';
+      }
+    })();
+  </script>
+</body>
+</html>

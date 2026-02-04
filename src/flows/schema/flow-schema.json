@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://okta-ai-simulator.local/flow-schema.json",
+  "title": "OAuth Flow Definition",
+  "description": "JSON schema for defining OAuth grant type flows in the Okta AI Simulator",
+  "type": "object",
+  "required": ["id", "name", "configType", "steps"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the flow (used in URLs and storage)",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name for the flow"
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Subtitle shown below the name (e.g., RFC reference)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Full description of the flow"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Icon identifier for the flow tile"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["oauth", "oidc", "custom"],
+      "description": "Flow category for organization"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Tags for filtering and search"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["available", "beta", "deprecated", "coming-soon"],
+      "description": "Flow availability status"
+    },
+    "documentation": {
+      "type": "object",
+      "description": "Link to implementation guide",
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "icon": { "type": "string" },
+        "label": { "type": "string" }
+      },
+      "required": ["url"]
+    },
+    "configType": {
+      "type": "string",
+      "description": "Type identifier for saved configurations"
+    },
+    "configSections": {
+      "type": "array",
+      "description": "Configuration panel sections",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "fields"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "layout": {
+            "type": "string",
+            "enum": ["single", "split"],
+            "default": "single"
+          },
+          "fields": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "configFields": {
+      "type": "array",
+      "description": "Configuration field definitions",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "type"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["text", "password", "textarea", "select", "scope-selector", "auth-server-picker", "client-auth-toggle"]
+          },
+          "placeholder": { "type": "string" },
+          "required": { "type": "boolean" },
+          "default": {},
+          "helpText": { "type": "string" },
+          "autoCorrect": { "type": "string" },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["value", "label"],
+              "properties": {
+                "value": { "type": "string" },
+                "label": { "type": "string" }
+              }
+            }
+          },
+          "conditionalOn": {
+            "type": "object",
+            "properties": {
+              "field": { "type": "string" },
+              "value": {}
+            }
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "description": "Flow step definitions",
+      "items": {
+        "type": "object",
+        "required": ["number", "id", "title"],
+        "properties": {
+          "number": { "type": "integer", "minimum": 1 },
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "actor": {
+            "type": "string",
+            "enum": ["device", "user", "agent", "server", "app"]
+          },
+          "actorLabel": { "type": "string" },
+          "actorIcon": { "type": "string" },
+          "description": { "type": "string" },
+          "initiallyLocked": { "type": "boolean" },
+          "button": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "action": {
+                "type": "string",
+                "enum": ["api", "openUrl", "poll", "oauth", "custom"]
+              },
+              "urlSource": { "type": "string" }
+            }
+          },
+          "stopButton": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "id": { "type": "string" }
+            }
+          },
+          "endpoints": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "previewId": { "type": "string" },
+                "template": { "type": "string" }
+              }
+            }
+          },
+          "curl": {
+            "type": "object",
+            "properties": {
+              "method": { "type": "string" },
+              "urlTemplate": { "type": "string" },
+              "headers": { "type": "object" },
+              "bodyParams": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "value": { "type": "string" },
+                    "source": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "api": {
+            "type": "object",
+            "properties": {
+              "endpoint": { "type": "string" },
+              "method": { "type": "string" },
+              "bodyTemplate": { "type": "object" },
+              "storeResults": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["from", "to"],
+                  "properties": {
+                    "from": { "type": "string" },
+                    "to": { "type": "string" },
+                    "default": {}
+                  }
+                }
+              }
+            }
+          },
+          "polling": {
+            "type": "object",
+            "properties": {
+              "endpoint": { "type": "string" },
+              "method": { "type": "string" },
+              "bodyTemplate": { "type": "object" },
+              "intervalSource": { "type": "string" },
+              "successCondition": { "type": "string" },
+              "pendingCondition": { "type": "string" },
+              "slowDownCondition": { "type": "string" },
+              "expiredCondition": { "type": "string" },
+              "deniedCondition": { "type": "string" },
+              "storeResults": { "type": "array" }
+            }
+          },
+          "onSuccess": {
+            "type": "object",
+            "properties": {
+              "showDeviceCodeDisplay": { "type": "boolean" },
+              "showTokenDisplay": { "type": "boolean" },
+              "unlockSteps": {
+                "type": "array",
+                "items": { "type": "integer" }
+              }
+            }
+          },
+          "resultDisplay": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string" }
+            }
+          },
+          "info": { "type": "string" }
+        }
+      }
+    },
+    "tokenDisplay": {
+      "type": "object",
+      "properties": {
+        "show": { "type": "boolean" },
+        "containerId": { "type": "string" },
+        "tabs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "tokenKey"],
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "tokenKey": { "type": "string" },
+              "decode": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+    "customHandlers": {
+      "type": "object",
+      "description": "Map of step identifiers to custom handler function names"
+    },
+    "stateSchema": {
+      "type": "object",
+      "description": "Schema for flow state variables"
+    }
+  }
+}

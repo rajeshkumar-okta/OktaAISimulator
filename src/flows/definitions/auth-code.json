@@ -1,0 +1,464 @@
+{
+  "id": "auth-code",
+  "name": "Authorization Code Flow",
+  "subtitle": "OAuth 2.0 / OpenID Connect Authentication",
+  "description": "The Authorization Code Flow is the standard OAuth 2.0 flow for server-side applications. The user is redirected to Okta to authenticate, and an authorization code is returned which is exchanged for tokens.",
+  "icon": "key",
+  "category": "oauth",
+  "tags": [
+    "OAuth 2.0",
+    "OpenID Connect",
+    "PKCE",
+    "Authorization Code"
+  ],
+  "status": "available",
+  "state": "testing",
+  "documentation": {
+    "url": "https://developer.okta.com/docs/guides/implement-grant-type/authcode/main/",
+    "icon": "book",
+    "label": "Okta Authorization Code Guide"
+  },
+  "configType": "auth-code-flow",
+  "storageKey": "okta_auth_code_config",
+  "storageMetaKey": "okta_auth_code_config_meta",
+  "configSections": [
+    {
+      "id": "okta-settings",
+      "title": "Okta Settings",
+      "layout": "single",
+      "fields": [
+        "oktaDomain"
+      ]
+    },
+    {
+      "id": "application-settings",
+      "title": "Application",
+      "layout": "split",
+      "fields": [
+        "clientId",
+        "clientAuthMethod",
+        "clientSecret",
+        "privateJwk",
+        "redirectUri"
+      ]
+    },
+    {
+      "id": "auth-server-settings",
+      "title": "Authorization Server",
+      "layout": "single",
+      "fields": [
+        "authServerMode",
+        "scopes",
+        "responseType"
+      ]
+    },
+    {
+      "id": "oauth-params",
+      "title": "OAuth Parameters",
+      "layout": "split",
+      "fields": [
+        "stateMode",
+        "nonceMode"
+      ]
+    },
+    {
+      "id": "notes",
+      "title": "Notes",
+      "layout": "single",
+      "fields": [
+        "note"
+      ]
+    }
+  ],
+  "configFields": [
+    {
+      "id": "oktaDomain",
+      "label": "Okta Domain",
+      "type": "text",
+      "placeholder": "https://your-org.okta.com",
+      "required": true,
+      "autoCorrect": "oktaDomain",
+      "helpText": "Your Okta organization URL"
+    },
+    {
+      "id": "clientId",
+      "label": "Client ID",
+      "type": "text",
+      "placeholder": "0oa...",
+      "required": true,
+      "helpText": "OAuth 2.0 Client ID"
+    },
+    {
+      "id": "clientAuthMethod",
+      "label": "Client Authentication",
+      "type": "select",
+      "default": "client_secret",
+      "options": [
+        {
+          "value": "client_secret",
+          "label": "Client Secret"
+        },
+        {
+          "value": "private_key",
+          "label": "Public Key / Private Key"
+        },
+        {
+          "value": "pkce",
+          "label": "PKCE (Public Client)"
+        }
+      ]
+    },
+    {
+      "id": "clientSecret",
+      "label": "Client Secret",
+      "type": "password",
+      "placeholder": "OAuth 2.0 Client Secret",
+      "conditionalOn": {
+        "field": "clientAuthMethod",
+        "value": "client_secret"
+      }
+    },
+    {
+      "id": "privateJwk",
+      "label": "Private Key (JWK)",
+      "type": "textarea",
+      "placeholder": "{ \"kty\": \"RSA\", ... }",
+      "rows": 4,
+      "conditionalOn": {
+        "field": "clientAuthMethod",
+        "value": "private_key"
+      }
+    },
+    {
+      "id": "redirectUri",
+      "label": "Redirect URI",
+      "type": "redirect-uri-picker",
+      "default": "thisApp",
+      "options": [
+        {
+          "value": "thisApp",
+          "label": "This app"
+        },
+        {
+          "value": "custom",
+          "label": "Specify URI"
+        }
+      ]
+    },
+    {
+      "id": "authServerMode",
+      "label": "Authorization Server",
+      "type": "auth-server-picker",
+      "default": "default",
+      "options": [
+        {
+          "value": "org",
+          "label": "Org Authorization Server (oauth2/v1)"
+        },
+        {
+          "value": "default",
+          "label": "Default (oauth2/default/v1)"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ]
+    },
+    {
+      "id": "authorizationServerId",
+      "label": "Custom Auth Server ID",
+      "type": "text",
+      "placeholder": "your-auth-server-id",
+      "conditionalOn": {
+        "field": "authServerMode",
+        "value": "custom"
+      }
+    },
+    {
+      "id": "scopes",
+      "label": "Scopes",
+      "type": "scope-selector",
+      "default": "openid profile email",
+      "helpText": "Select OAuth scopes to request"
+    },
+    {
+      "id": "responseType",
+      "label": "Response Type",
+      "type": "response-type-selector",
+      "default": "code",
+      "helpText": "OAuth response type"
+    },
+    {
+      "id": "stateMode",
+      "label": "State",
+      "type": "select",
+      "default": "random",
+      "options": [
+        {
+          "value": "random",
+          "label": "Random"
+        },
+        {
+          "value": "specify",
+          "label": "Specify"
+        }
+      ]
+    },
+    {
+      "id": "state",
+      "label": "Custom State",
+      "type": "text",
+      "placeholder": "Custom state value",
+      "conditionalOn": {
+        "field": "stateMode",
+        "value": "specify"
+      }
+    },
+    {
+      "id": "nonceMode",
+      "label": "Nonce",
+      "type": "select",
+      "default": "random",
+      "options": [
+        {
+          "value": "random",
+          "label": "Random"
+        },
+        {
+          "value": "specify",
+          "label": "Specify"
+        }
+      ]
+    },
+    {
+      "id": "nonce",
+      "label": "Custom Nonce",
+      "type": "text",
+      "placeholder": "Custom nonce value",
+      "conditionalOn": {
+        "field": "nonceMode",
+        "value": "specify"
+      }
+    },
+    {
+      "id": "note",
+      "label": "Note",
+      "type": "textarea",
+      "placeholder": "Any notes about this configuration...",
+      "rows": 2,
+      "required": false
+    }
+  ],
+  "steps": [
+    {
+      "number": 1,
+      "id": "user-authentication",
+      "title": "User Authentication",
+      "actor": "app",
+      "actorLabel": "Application",
+      "actorIcon": "key",
+      "description": "Redirect the user to Okta for authentication/authorization. After successful remediation, Okta returns an authorization code which is exchanged for tokens (ID token, access token, refresh token).",
+      "initiallyLocked": false,
+      "button": {
+        "label": "Generate Token",
+        "action": "oauth"
+      },
+      "endpoints": [
+        {
+          "label": "Authorize",
+          "template": "{{basePath}}/authorize",
+          "previewId": "endpoint-1-0"
+        }
+      ],
+      "curlSections": [
+        {
+          "id": "authorize",
+          "label": "1. Redirect user to authorize endpoint:",
+          "method": "GET",
+          "urlTemplate": "{{oktaDomain}}{{basePath}}/authorize",
+          "queryParams": [
+            {
+              "name": "client_id",
+              "source": "config.clientId"
+            },
+            {
+              "name": "response_type",
+              "source": "config.responseType",
+              "default": "code"
+            },
+            {
+              "name": "scope",
+              "source": "config.scopes"
+            },
+            {
+              "name": "redirect_uri",
+              "source": "config.redirectUri"
+            },
+            {
+              "name": "state",
+              "value": "{random}"
+            },
+            {
+              "name": "nonce",
+              "value": "{random}"
+            }
+          ],
+          "conditionalParams": {
+            "pkce": [
+              {
+                "name": "code_challenge",
+                "value": "{S256_HASH}"
+              },
+              {
+                "name": "code_challenge_method",
+                "value": "S256"
+              }
+            ]
+          },
+          "comment": "Browser redirect (not a cURL call)"
+        },
+        {
+          "id": "token",
+          "label": "2. Exchange authorization code for tokens:",
+          "method": "POST",
+          "urlTemplate": "{{oktaDomain}}{{basePath}}/token",
+          "headers": {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          "bodyParams": [
+            {
+              "name": "grant_type",
+              "value": "authorization_code"
+            },
+            {
+              "name": "redirect_uri",
+              "source": "config.redirectUri"
+            },
+            {
+              "name": "code",
+              "value": "{AUTHORIZATION_CODE}"
+            }
+          ],
+          "conditionalBodyParams": {
+            "client_secret": [
+              {
+                "name": "client_id",
+                "source": "config.clientId"
+              },
+              {
+                "name": "client_secret",
+                "source": "config.clientSecret"
+              }
+            ],
+            "private_key": [
+              {
+                "name": "client_assertion_type",
+                "value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+              },
+              {
+                "name": "client_assertion",
+                "value": "{JWT_CLIENT_ASSERTION}"
+              }
+            ],
+            "pkce": [
+              {
+                "name": "client_id",
+                "source": "config.clientId"
+              },
+              {
+                "name": "code_verifier",
+                "value": "{CODE_VERIFIER}"
+              }
+            ]
+          }
+        }
+      ],
+      "api": {
+        "endpoint": "/api/oauth/authorize",
+        "method": "POST",
+        "storeResults": []
+      },
+      "onSuccess": {
+        "showTokenDisplay": true
+      },
+      "curl": {
+        "method": "GET",
+        "urlTemplate": "",
+        "headers": {},
+        "bodyParams": []
+      }
+    }
+  ],
+  "tokenDisplay": {
+    "show": true,
+    "containerId": "token-details",
+    "tabs": [
+      {
+        "id": "id-token",
+        "label": "ID Token",
+        "tokenKey": "idToken",
+        "decode": true
+      },
+      {
+        "id": "access-token",
+        "label": "Access Token",
+        "tokenKey": "accessToken",
+        "decode": true
+      },
+      {
+        "id": "refresh-token",
+        "label": "Refresh Token",
+        "tokenKey": "refreshToken",
+        "decode": false
+      }
+    ]
+  },
+  "customHandlers": {
+    "step1": "authCodeLogin"
+  },
+  "stateSchema": {
+    "authorizationCode": {
+      "type": "string"
+    },
+    "accessToken": {
+      "type": "string"
+    },
+    "idToken": {
+      "type": "string"
+    },
+    "refreshToken": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "nonce": {
+      "type": "string"
+    },
+    "codeVerifier": {
+      "type": "string"
+    },
+    "codeChallenge": {
+      "type": "string"
+    }
+  },
+  "oauthCallback": {
+    "channel": "oauth-callback",
+    "messageType": "oauth-callback",
+    "storeResults": [
+      {
+        "from": "idToken",
+        "to": "idToken"
+      },
+      {
+        "from": "accessToken",
+        "to": "accessToken"
+      },
+      {
+        "from": "refreshToken",
+        "to": "refreshToken"
+      }
+    ]
+  }
+}

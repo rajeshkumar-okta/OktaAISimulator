@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Exchange - Okta</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">← All Flows</a>
+    </nav>
+    <header>
+      <h1>Token Exchange</h1>
+      <p class="subtitle">RFC 8693 - OAuth 2.0 Token Exchange</p>
+    </header>
+
+    <!-- Configuration Panel -->
+    <details class="config-panel" id="config-panel" open>
+      <summary>
+        Configuration <span class="config-status" id="config-status"></span>
+        <button class="btn-icon" id="load-saved-btn" title="Load saved configuration">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3.5A1.5 1.5 0 013.5 2h2.879a1.5 1.5 0 011.06.44l1.122 1.12A1.5 1.5 0 009.62 4H12.5A1.5 1.5 0 0114 5.5v7a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 12.5v-9z"/></svg>
+        </button>
+      </summary>
+      <div class="config-fields">
+        <div class="config-row">
+          <label for="cfg-oktaDomain">Okta Domain</label>
+          <input type="text" id="cfg-oktaDomain" placeholder="https://your-domain.okta.com">
+        </div>
+        <div class="config-section-divider">
+          <span>Application</span>
+        </div>
+        <div class="config-row-split">
+          <div class="config-row-half">
+            <label for="cfg-clientId">Client ID</label>
+            <input type="text" id="cfg-clientId" placeholder="OAuth 2.0 Client ID">
+          </div>
+          <div class="config-row-half">
+            <label for="cfg-clientAuthMethod">Client Authentication</label>
+            <select id="cfg-clientAuthMethod">
+              <option value="client_secret">Client Secret</option>
+              <option value="private_key">Public Key / Private Key</option>
+            </select>
+          </div>
+        </div>
+        <div class="config-row" id="cfg-clientSecret-row">
+          <label for="cfg-clientSecret">Client Secret</label>
+          <input type="password" id="cfg-clientSecret" placeholder="OAuth 2.0 Client Secret">
+        </div>
+        <div class="config-row" id="cfg-privateJwk-row" hidden>
+          <label for="cfg-privateJwk">Private JWK</label>
+          <textarea id="cfg-privateJwk" rows="4" placeholder='{"kty":"RSA","kid":"...","d":"..."}'></textarea>
+        </div>
+        <div class="config-section-divider">
+          <span>Authorization Server</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-authServerMode">Authorization Server</label>
+          <div class="redirect-uri-group">
+            <select id="cfg-authServerMode">
+              <option value="org">Org Authorization Server (v1)</option>
+              <option value="default">Default Custom Auth Server</option>
+              <option value="custom">Custom Auth Server ID</option>
+            </select>
+            <input type="text" id="cfg-authorizationServerId" placeholder="Custom Auth Server ID" hidden>
+            <span class="auth-server-preview" id="auth-server-preview"></span>
+          </div>
+        </div>
+        <div class="config-section-divider">
+          <span>Token Exchange Settings</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-audience">Audience (Resource) <span class="label-optional">(optional)</span></label>
+          <input type="text" id="cfg-audience" placeholder="api://default or target resource URI">
+        </div>
+        <div class="config-row">
+          <label for="cfg-requestedTokenType">Requested Token Type</label>
+          <select id="cfg-requestedTokenType">
+            <option value="">Default (server decides)</option>
+            <option value="urn:ietf:params:oauth:token-type:access_token">Access Token</option>
+            <option value="urn:ietf:params:oauth:token-type:refresh_token">Refresh Token</option>
+            <option value="urn:ietf:params:oauth:token-type:id_token">ID Token</option>
+            <option value="urn:okta:oauth:token-type:web_sso_token">Web SSO Token</option>
+            <option value="urn:x-]]amzn:oauth:token-type:access_token">AWS Token</option>
+          </select>
+        </div>
+        <div class="config-row">
+          <label>Scopes <span class="label-optional">(optional)</span></label>
+          <div class="scope-selector" id="scope-selector">
+            <div class="scope-tiles" id="scope-tiles">
+              <span class="scope-loading" id="scope-loading">Configure Okta Domain and Auth Server to load scopes</span>
+            </div>
+            <div class="scope-custom-input">
+              <input type="text" id="scope-custom-input" placeholder="Add custom scope...">
+              <button type="button" class="btn btn-small btn-secondary" id="scope-add-btn">Add</button>
+            </div>
+          </div>
+          <input type="hidden" id="cfg-scopes" value="openid profile email">
+        </div>
+        <div class="config-section-divider">
+          <span>Actor Token (Optional - for Delegation)</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-actorTokenType">Actor Token Type</label>
+          <select id="cfg-actorTokenType">
+            <option value="">No Actor Token</option>
+            <option value="urn:ietf:params:oauth:token-type:access_token">Access Token</option>
+            <option value="urn:ietf:params:oauth:token-type:id_token">ID Token</option>
+            <option value="urn:ietf:params:oauth:token-type:jwt">JWT</option>
+          </select>
+        </div>
+        <div class="config-row" id="cfg-actorToken-row" hidden>
+          <label for="cfg-actorToken">Actor Token</label>
+          <textarea id="cfg-actorToken" rows="3" placeholder="Paste actor token here..."></textarea>
+        </div>
+        <div class="config-section-divider">
+          <span>Notes</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-note">Note <span class="label-optional">(optional)</span></label>
+          <textarea id="cfg-note" rows="2" placeholder="Any notes about this configuration..."></textarea>
+        </div>
+        <div class="config-actions">
+          <button class="btn btn-primary btn-small" id="save-config-btn">Save to Browser</button>
+          <button class="btn btn-primary btn-small" id="save-server-btn">Save to Server</button>
+          <button class="btn btn-secondary btn-small" id="clear-config-btn">Clear Saved</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- Save Config Modal -->
+    <div class="modal-overlay" id="save-modal" hidden>
+      <div class="modal modal-dialog">
+        <div class="modal-header">
+          <h3>Save Configuration</h3>
+        </div>
+        <div class="modal-body">
+          <div class="save-mode-toggle">
+            <label class="save-mode-option">
+              <input type="radio" name="save-mode" value="new" checked>
+              <span>Save as New</span>
+            </label>
+            <label class="save-mode-option">
+              <input type="radio" name="save-mode" value="overwrite">
+              <span>Overwrite Existing</span>
+            </label>
+          </div>
+          <div class="dialog-field" id="save-new-field">
+            <label for="save-name">Configuration Name</label>
+            <input type="text" id="save-name" class="dialog-input" placeholder="e.g. Dev Environment">
+          </div>
+          <div class="dialog-field" id="save-overwrite-field" hidden>
+            <label for="save-existing">Select Configuration</label>
+            <select id="save-existing" class="dialog-select">
+              <option value="">Loading...</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-small" id="save-modal-cancel">Cancel</button>
+          <button class="btn btn-primary btn-small" id="save-modal-ok">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Configs Modal -->
+    <div class="modal-overlay" id="configs-modal" hidden>
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Saved Configurations</h3>
+          <button class="btn-icon" id="close-modal-btn" title="Close">&times;</button>
+        </div>
+        <div class="modal-body" id="configs-list">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow Steps -->
+    <div class="stepper">
+      <div class="stepper-header">
+        <span>Token Exchange Flow</span>
+        <div class="stepper-actions">
+          <button id="view-logs-btn" class="btn btn-secondary btn-small">View Logs</button>
+          <button id="reset-btn" class="btn btn-secondary btn-small">Reset</button>
+        </div>
+      </div>
+
+      <!-- Step 1: Provide Subject Token -->
+      <div class="step" id="step-1">
+        <div class="step-header">
+          <span class="step-number">1</span>
+          <div class="step-info">
+            <span class="actor actor-app">Application</span>
+            <h3>Provide Subject Token</h3>
+            <p>Provide the subject token to be exchanged. This can be an access token, ID token, or other supported token type.</p>
+            <div class="step-option">
+              <label for="subject-token-type">Subject Token Type:</label>
+              <select id="subject-token-type" class="step-select">
+                <option value="urn:ietf:params:oauth:token-type:access_token">Access Token</option>
+                <option value="urn:ietf:params:oauth:token-type:id_token">ID Token</option>
+                <option value="urn:ietf:params:oauth:token-type:refresh_token">Refresh Token</option>
+                <option value="urn:ietf:params:oauth:token-type:jwt">JWT</option>
+                <option value="urn:okta:oauth:token-type:web_sso_token">Web SSO Token</option>
+              </select>
+            </div>
+          </div>
+          <div class="step-action-group">
+            <button class="btn btn-primary" id="btn-step-1">Set Token</button>
+            <a href="#" class="use-existing-link" id="get-token-link">Get token via Auth Code flow</a>
+          </div>
+        </div>
+        <div class="use-existing-panel" id="token-input-panel">
+          <label for="subject-token-input">Subject Token:</label>
+          <textarea id="subject-token-input" rows="4" placeholder="Paste your token here..."></textarea>
+        </div>
+        <div class="step-result" id="result-1"></div>
+      </div>
+
+      <!-- Step 2: Exchange Token -->
+      <div class="step locked" id="step-2">
+        <div class="step-header">
+          <span class="step-number">2</span>
+          <div class="step-info">
+            <span class="actor actor-app">Application</span>
+            <h3>Exchange Token</h3>
+            <p>Exchange the subject token for a new token using RFC 8693 Token Exchange grant type.</p>
+            <div class="step-option">
+              <code class="uri-template" id="token-endpoint-preview">/oauth2/v1/token</code>
+              <span class="grant-type">grant_type=urn:ietf:params:oauth:grant-type:token-exchange</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-step-2" disabled>Exchange Token</button>
+        </div>
+        <details class="curl-section">
+          <summary>cURL Command</summary>
+          <pre class="curl-box" id="curl-2"></pre>
+        </details>
+        <div class="step-result" id="result-2"></div>
+      </div>
+
+      <!-- Step 3: Verify Exchanged Token -->
+      <div class="step locked" id="step-3">
+        <div class="step-header">
+          <span class="step-number">3</span>
+          <div class="step-info">
+            <span class="actor actor-mcp">Verification</span>
+            <h3>Verify Exchanged Token</h3>
+            <p>Verify the exchanged token by decoding and validating its claims via JWKS.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-step-3" disabled>Verify Token</button>
+        </div>
+        <div class="step-result" id="result-3"></div>
+      </div>
+    </div>
+
+    <!-- Token Details Section -->
+    <div class="token-details" id="token-details" hidden>
+      <h3>Exchanged Token Details</h3>
+      <div class="token-tabs">
+        <button class="token-tab active" data-tab="exchanged-token">Exchanged Token</button>
+      </div>
+      <div class="token-content" id="token-content"></div>
+    </div>
+  </div>
+
+  <!-- Dialog Modal -->
+  <div class="modal-overlay" id="dialog-modal" hidden>
+    <div class="modal modal-dialog">
+      <div class="modal-header">
+        <h3 id="dialog-title">Message</h3>
+      </div>
+      <div class="modal-body">
+        <p id="dialog-message"></p>
+        <input type="text" id="dialog-input" class="dialog-input" hidden>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-small" id="dialog-cancel" hidden>Cancel</button>
+        <button class="btn btn-primary btn-small" id="dialog-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check authentication before loading app
+    (function() {
+      const CURRENT_USER_KEY = 'okta_current_user';
+      const SESSION_HOURS = 24;
+
+      function isAuthenticated() {
+        const userJson = localStorage.getItem(CURRENT_USER_KEY);
+        if (!userJson) return false;
+        try {
+          const user = JSON.parse(userJson);
+          if (!user.authenticatedAt) return false;
+          const authTime = new Date(user.authenticatedAt);
+          const hoursSinceAuth = (Date.now() - authTime.getTime()) / (1000 * 60 * 60);
+          return hoursSinceAuth < SESSION_HOURS;
+        } catch { return false; }
+      }
+
+      if (!isAuthenticated()) {
+        window.location.href = '/login.html';
+      }
+    })();
+  </script>
+  <script src="token-exchange-app.js"></script>
+</body>
+</html>

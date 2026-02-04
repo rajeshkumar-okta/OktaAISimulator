@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Wizard - Okta Authentication Flows</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      color: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .wizard {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      max-width: 560px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .wizard-header {
+      background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+      padding: 1.5rem 2rem;
+      color: #fff;
+    }
+
+    .wizard-header h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .wizard-header p {
+      opacity: 0.9;
+      font-size: 0.9rem;
+    }
+
+    .wizard-progress {
+      display: flex;
+      padding: 1rem 2rem;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e0e0e0;
+      gap: 0.5rem;
+    }
+
+    .progress-step {
+      flex: 1;
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      transition: background 0.3s;
+    }
+
+    .progress-step.active {
+      background: #1976d2;
+    }
+
+    .progress-step.complete {
+      background: #4caf50;
+    }
+
+    .wizard-body {
+      padding: 2rem;
+      color: #333;
+      min-height: 320px;
+    }
+
+    .step {
+      display: none;
+    }
+
+    .step.active {
+      display: block;
+    }
+
+    .step h2 {
+      font-size: 1.25rem;
+      color: #1a1a2e;
+      margin-bottom: 0.75rem;
+    }
+
+    .step p {
+      color: #666;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.35rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #1976d2;
+      box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+    }
+
+    .form-group .hint {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 0.25rem;
+    }
+
+    .callout {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      margin: 1rem 0;
+      font-size: 0.85rem;
+      color: #856404;
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .callout code {
+      background: rgba(0, 0, 0, 0.1);
+      padding: 0.15rem 0.35rem;
+      border-radius: 3px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 0.8rem;
+      word-break: break-all;
+    }
+
+    .wizard-footer {
+      display: flex;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      border-top: 1px solid #e0e0e0;
+      background: #f8f9fa;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #1976d2;
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #1565c0;
+    }
+
+    .btn-secondary {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #d0d0d0;
+    }
+
+    .btn-success {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .btn-success:hover:not(:disabled) {
+      background: #43a047;
+    }
+
+    /* Step-specific styles */
+    .welcome-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin: 1rem 0;
+    }
+
+    .feature-list li {
+      padding: 0.5rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    .feature-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #4caf50;
+      font-weight: bold;
+    }
+
+    .success-icon {
+      font-size: 4rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .user-info {
+      background: #f0f7ff;
+      border: 1px solid #bbdefb;
+      border-radius: 6px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    .user-info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.35rem 0;
+      font-size: 0.85rem;
+    }
+
+    .user-info-row .label {
+      color: #666;
+    }
+
+    .user-info-row .value {
+      color: #1a1a2e;
+      font-weight: 500;
+      word-break: break-all;
+      text-align: right;
+      max-width: 60%;
+    }
+
+    .error-message {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      color: #b91c1c;
+      font-size: 0.85rem;
+      margin: 1rem 0;
+      display: none;
+    }
+
+    .error-message.visible {
+      display: block;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid #fff;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="wizard">
+    <div class="wizard-header">
+      <h1>Setup Wizard</h1>
+      <p>Configure your Identity Provider to get started</p>
+    </div>
+
+    <div class="wizard-progress">
+      <div class="progress-step active" data-step="1"></div>
+      <div class="progress-step" data-step="2"></div>
+      <div class="progress-step" data-step="3"></div>
+    </div>
+
+    <div class="wizard-body">
+      <!-- Step 1: Welcome -->
+      <div class="step active" id="step-1">
+        <div class="welcome-icon">🔐</div>
+        <h2>Welcome to Okta Authentication Flows</h2>
+        <p>This wizard will help you configure an Identity Provider (IdP) for the application. You'll authenticate using the OAuth 2.0 Authorization Code Flow.</p>
+        <ul class="feature-list">
+          <li>Connect to any OIDC-compliant Authorization Server</li>
+          <li>Securely authenticate using Authorization Code Flow</li>
+          <li>Your IdP configuration will be saved for future sessions</li>
+        </ul>
+        <p>Click <strong>Get Started</strong> to begin.</p>
+      </div>
+
+      <!-- Step 2: Configuration -->
+      <div class="step" id="step-2">
+        <h2>Configure Your Identity Provider</h2>
+        <p>Enter your OIDC application credentials. You'll need a web application configured in your authorization server.</p>
+
+        <div class="form-group">
+          <label for="oktaDomain">Authorization Server URL</label>
+          <input type="text" id="oktaDomain" placeholder="https://your-domain.okta.com">
+          <div class="hint">The base URL of your authorization server (e.g., Okta domain)</div>
+        </div>
+
+        <div class="form-group">
+          <label for="clientId">Client ID</label>
+          <input type="text" id="clientId" placeholder="Your OAuth 2.0 Client ID">
+        </div>
+
+        <div class="form-group">
+          <label for="clientSecret">Client Secret</label>
+          <input type="password" id="clientSecret" placeholder="Your OAuth 2.0 Client Secret">
+        </div>
+
+        <div class="callout">
+          <strong>Redirect URI Configuration Required</strong>
+          Add this redirect URI to your application configuration:
+          <br><br>
+          <code id="redirect-uri"></code>
+        </div>
+
+        <div class="error-message" id="config-error"></div>
+      </div>
+
+      <!-- Step 3: Authentication -->
+      <div class="step" id="step-3">
+        <h2>Authenticate with Your IdP</h2>
+        <p>Click the button below to authenticate with your configured Identity Provider. This will open a popup window for you to log in.</p>
+
+        <div class="error-message" id="auth-error"></div>
+
+        <div id="auth-pending">
+          <p style="text-align: center; margin: 2rem 0;">
+            <button class="btn btn-primary" id="btn-authenticate" style="font-size: 1rem; padding: 0.75rem 2rem;">
+              Login with IdP
+            </button>
+          </p>
+          <p style="text-align: center; color: #888; font-size: 0.85rem;">
+            A popup window will open for authentication
+          </p>
+        </div>
+
+        <div id="auth-success" class="hidden">
+          <div class="success-icon">✅</div>
+          <h2 style="text-align: center; color: #4caf50;">Authentication Successful!</h2>
+          <div class="user-info">
+            <div class="user-info-row">
+              <span class="label">User ID (sub)</span>
+              <span class="value" id="user-sub"></span>
+            </div>
+            <div class="user-info-row">
+              <span class="label">Name</span>
+              <span class="value" id="user-name"></span>
+            </div>
+            <div class="user-info-row">
+              <span class="label">Email</span>
+              <span class="value" id="user-email"></span>
+            </div>
+            <div class="user-info-row">
+              <span class="label">Issuer</span>
+              <span class="value" id="user-iss"></span>
+            </div>
+          </div>
+          <p style="text-align: center; color: #666; font-size: 0.85rem;">
+            This user has been saved to your browser for future sessions.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="wizard-footer">
+      <button class="btn btn-secondary" id="btn-back" disabled>Back</button>
+      <button class="btn btn-primary" id="btn-next">Get Started</button>
+    </div>
+  </div>
+
+  <script src="setup-app.js"></script>
+</body>
+</html>

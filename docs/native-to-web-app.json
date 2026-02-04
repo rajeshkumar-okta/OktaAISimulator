@@ -1,0 +1,2517 @@
+{
+	"info": {
+		"_postman_id": "f302b948-87e3-4392-b358-161fb72090c8",
+		"name": "Native 2 Web SSO Testing",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "15088703"
+	},
+	"item": [
+		{
+			"name": "Tokens Password Request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"mfa_token\", jsonData.mfa_token);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "dpop",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "openid",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "password",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "{{username}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "{{password}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "AbfpwjG_16MqzLirpK-zLmShya2xBDK8iZYZBeBL",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/oauth2/v1/token",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Direct Auth OOB Push Authenticate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"oob_code\", jsonData.oob_code);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "login_hint",
+							"value": "{{username}}",
+							"type": "text"
+						},
+						{
+							"key": "channel_hint",
+							"value": "push",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "iRT7LUnwOmqwZVQ-JtE8GvEjUXflghexlVyU5-lQ",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/oauth2/v1/oob-authenticate",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"oauth2",
+						"v1",
+						"oob-authenticate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Direct Auth OOB SMS Authenticate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"oob_code\", jsonData.oob_code);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "login_hint",
+							"value": "{{username}}",
+							"type": "text"
+						},
+						{
+							"key": "channel_hint",
+							"value": "push",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "iRT7LUnwOmqwZVQ-JtE8GvEjUXflghexlVyU5-lQ",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/oauth2/v1/oob-authenticate",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"oauth2",
+						"v1",
+						"oob-authenticate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Direct Auth OOB SMS Authenticate customAS",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"oob_code\", jsonData.oob_code);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "login_hint",
+							"value": "{{username}}",
+							"type": "text"
+						},
+						{
+							"key": "channel_hint",
+							"value": "push",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "iRT7LUnwOmqwZVQ-JtE8GvEjUXflghexlVyU5-lQ",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/oauth2/dafault/v1/oob-authenticate",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"oauth2",
+						"dafault",
+						"v1",
+						"oob-authenticate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OOB Grant Copy",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "dpop",
+						"value": "eyJraWQiOiJtNmxVWjVOcVJXQTJjMTdrS2I4c0FhN2FMT1JMem0xWFFJakhPaV9GNklnIiwiYWxnIjoiUlMyNTYiLCJ0eXAiOiJkcG9wK2p3dCIsImp3ayI6eyJrdHkiOiJSU0EiLCJlIjoiQVFBQiIsInVzZSI6InNpZyIsImtpZCI6IlluM0hucTFybV8tSFc1V0h0U0w3eXZoOG1ERVRYZm5xZ0xjb3R3dE94N3ciLCJhbGciOiJSUzI1NiIsIm4iOiJ0WkpEUUdJS1A5eTNkVXlNbHdXdnh5V19uamxJS2k2Q2hPTzF1WTBwcGFOOUs2NWJyM1NNMXBXbWxMeHlCUWFwRVNTS1FFVlRLcDhJUDVFV1lzeWdlMWJxSm96WTZTdjhDWGtTUFlaX0pvM19LTWczTFlIdElXb2pOck9wZ3ZBVVQ5YVZuREF1UXBSckhRR2ZMZENNNUprWi1JZ1otRkxuRmRmWnktVm9DbWdZUThWa09PZmVsUnUwODVWRWRWaG50M2lEYjJ0S2lvUlBQT2NKSzBRdzVxTzF3UWRqZ00wZW82UkdaZ0haZF9CVm45NGRqOElNcnpKZTl2Rkk2amNtZFRBR2VqYlVXZGpUd0ZTY1MwcTZpMHRUUHJvWlJRc1pSbEwxbjJiZ2Q5cnhnYjJLNWFYeGk0YXVDb3lwd2tWS1EyQk9HbTJYeC1ZRWstWmNYeG5uZFEifX0.eyJodG0iOiJQT1NUIiwiaHR1IjoiaHR0cHM6Ly9xYS1hYmlyLWRpcmVjdC1hdXRoLW9pZS50cmV4Y2xvdWQuY29tL29hdXRoMi92MS90b2tlbiIsImlhdCI6MTUxNjIzOTAyMiwibm9uY2UiOiJ6cUMzLWFyMmw3VklRWkcwd1lEU2Q0OWJ3M2M5TFQ0dyIsImp0aSI6IjEyMzQ1In0.ajRzS4IAs8uRj_Sg3Bo8U-Y8-mtXBXJ8HeHiHZ6UQKSbZfBe0eedxMbeuAilFy7eh_iEo9XPysZWbj3xoUZMZykgkCw5XP16GB_Hc3obhu_5_UXj-Su3Wmv79qjMBP1MHNSuH-y0G7qG57qcaCLMN3iHRwGIJryDoRcZd67gmrGg7P94GiMGqBOZgx9WaAm02FfVpgXC8OP9g57_ojpPJa3KfX2owM46-x7DY3qWcAKApNXs4ZZRLLx15Fs7SJVlN6_hiLr8wzO1tFnrMsCIa-Lyn6Lj0krJ4ARYa7vng5qJCPW-3ecQrcsw9HPa9KKkZApAC0kF5mAAIwLquPqNOw",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{clientId1fa}}",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "openid",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:okta:params:oauth:grant-type:oob",
+							"type": "text"
+						},
+						{
+							"key": "oob_code",
+							"value": "{{oob_code}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "iRT7LUnwOmqwZVQ-JtE8GvEjUXflghexlVyU5-lQ",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/oauth2/v1/token",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "token endpoint direct auth otp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"subjectToken\", jsonData.id_token);",
+							"pm.environment.set(\"actorToken\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00lBG44dLVvRvaQsPQwe7NsDoE1UB7aG5vBk0WV3st",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "client_id",
+						"value": "0oa7xmjnx4HiJmaOb0g5",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "grant_type",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "code",
+						"value": "Y2kPVmGrvyZPTtv80b8XxXIUJCtGoj2bkaxV-oxpf7k",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion_type",
+						"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion",
+						"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjEyMzQ1Njc4OSJ9.eyJhdWQiOiJodHRwOi8vY2xhc3NpYy1sb2NhbC1hcHAub2t0YTEuY29tOjE4MDIvb2F1dGgyL3YxL3Rva2VuIiwiaXNzIjoiMG9hNTNxd1ZCR2ZUNWZpR24wZzQiLCJzdWIiOiIwb2E1M3F3VkJHZlQ1ZmlHbjBnNCIsImV4cCI6MTYzODQ4NzUzMH0.QcUk0ge3rE7tkIXEDO3H8cgluNOTuoOULMBcnvagP0bDiLSt27IhupvtNPh0uWtT5SizPlzQ5FSF_kcljJl-tO8gpKMiOnGpjRJop_q691_5tVYyIwVj0ZrUHic-fvTmbc_9hznIjeoU0wOsJ0Xv4wzTY4eJhXd51BrJP5kt03GRwfOxxjqKJcK4h50ywoyLr9I7Apw13ewD-2gsocw2wF0ULpgPXu_T2xHRSgl-di4yKmm7vEcNhwufckfux8dlGsR7vCTdUolBO6-AnrsJmitI58S6qrbYp7ggqJC-4njoetBLf_VFGu0jfLS0w7uHADPH4vOzFvBeSN-UvXaRfg",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "UxCtzYvW_FJYzdF86XMYhNDpHRKfK3odcvl-j8wpk8MR_ECazLxbF82GRyxCa2so",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:okta:params:oauth:grant-type:otp",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/authorization-code/callback",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "code_verifier",
+							"value": "lQPWnRUxEncpRPrGI9zwwnN6YpTkipq8dz1bvjlsL0g",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "scope",
+							"value": "openid interclient_access",
+							"type": "text"
+						},
+						{
+							"key": "otp",
+							"value": "876352",
+							"type": "text"
+						},
+						{
+							"key": "login_hint",
+							"value": "abir.hassan@okta.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/oauth2/v1/token",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					],
+					"query": [
+						{
+							"key": "client_id",
+							"value": "0oa53qwVBGfT5fiGn0g4",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "token endpoint direct auth mfa-otp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"subjectToken\", jsonData.id_token);",
+							"pm.environment.set(\"actorToken\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00lBG44dLVvRvaQsPQwe7NsDoE1UB7aG5vBk0WV3st",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "client_id",
+						"value": "0oa7xmjnx4HiJmaOb0g5",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "grant_type",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "code",
+						"value": "Y2kPVmGrvyZPTtv80b8XxXIUJCtGoj2bkaxV-oxpf7k",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion_type",
+						"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion",
+						"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjEyMzQ1Njc4OSJ9.eyJhdWQiOiJodHRwOi8vY2xhc3NpYy1sb2NhbC1hcHAub2t0YTEuY29tOjE4MDIvb2F1dGgyL3YxL3Rva2VuIiwiaXNzIjoiMG9hNTNxd1ZCR2ZUNWZpR24wZzQiLCJzdWIiOiIwb2E1M3F3VkJHZlQ1ZmlHbjBnNCIsImV4cCI6MTYzODQ4NzUzMH0.QcUk0ge3rE7tkIXEDO3H8cgluNOTuoOULMBcnvagP0bDiLSt27IhupvtNPh0uWtT5SizPlzQ5FSF_kcljJl-tO8gpKMiOnGpjRJop_q691_5tVYyIwVj0ZrUHic-fvTmbc_9hznIjeoU0wOsJ0Xv4wzTY4eJhXd51BrJP5kt03GRwfOxxjqKJcK4h50ywoyLr9I7Apw13ewD-2gsocw2wF0ULpgPXu_T2xHRSgl-di4yKmm7vEcNhwufckfux8dlGsR7vCTdUolBO6-AnrsJmitI58S6qrbYp7ggqJC-4njoetBLf_VFGu0jfLS0w7uHADPH4vOzFvBeSN-UvXaRfg",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "UxCtzYvW_FJYzdF86XMYhNDpHRKfK3odcvl-j8wpk8MR_ECazLxbF82GRyxCa2so",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:okta:params:oauth:grant-type:otp",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/authorization-code/callback",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "code_verifier",
+							"value": "lQPWnRUxEncpRPrGI9zwwnN6YpTkipq8dz1bvjlsL0g",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "scope",
+							"value": "openid interclient_access",
+							"type": "text"
+						},
+						{
+							"key": "otp",
+							"value": "876352",
+							"type": "text"
+						},
+						{
+							"key": "login_hint",
+							"value": "abir.hassan@okta.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/oauth2/v1/token",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					],
+					"query": [
+						{
+							"key": "client_id",
+							"value": "0oa53qwVBGfT5fiGn0g4",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "token endpoint direct auth oob",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"subjectToken\", jsonData.id_token);",
+							"pm.environment.set(\"actorToken\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00lBG44dLVvRvaQsPQwe7NsDoE1UB7aG5vBk0WV3st",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "client_id",
+						"value": "0oa7xmjnx4HiJmaOb0g5",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "grant_type",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "code",
+						"value": "Y2kPVmGrvyZPTtv80b8XxXIUJCtGoj2bkaxV-oxpf7k",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion_type",
+						"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion",
+						"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjEyMzQ1Njc4OSJ9.eyJhdWQiOiJodHRwOi8vY2xhc3NpYy1sb2NhbC1hcHAub2t0YTEuY29tOjE4MDIvb2F1dGgyL3YxL3Rva2VuIiwiaXNzIjoiMG9hNTNxd1ZCR2ZUNWZpR24wZzQiLCJzdWIiOiIwb2E1M3F3VkJHZlQ1ZmlHbjBnNCIsImV4cCI6MTYzODQ4NzUzMH0.QcUk0ge3rE7tkIXEDO3H8cgluNOTuoOULMBcnvagP0bDiLSt27IhupvtNPh0uWtT5SizPlzQ5FSF_kcljJl-tO8gpKMiOnGpjRJop_q691_5tVYyIwVj0ZrUHic-fvTmbc_9hznIjeoU0wOsJ0Xv4wzTY4eJhXd51BrJP5kt03GRwfOxxjqKJcK4h50ywoyLr9I7Apw13ewD-2gsocw2wF0ULpgPXu_T2xHRSgl-di4yKmm7vEcNhwufckfux8dlGsR7vCTdUolBO6-AnrsJmitI58S6qrbYp7ggqJC-4njoetBLf_VFGu0jfLS0w7uHADPH4vOzFvBeSN-UvXaRfg",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "_znjSOjMYjJYfxvijnlksCqtJS5GzWpSXJ0U_svGGjROR3_N7L-5djG2-32tDHLA",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:okta:params:oauth:grant-type:oob",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/authorization-code/callback",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "code_verifier",
+							"value": "lQPWnRUxEncpRPrGI9zwwnN6YpTkipq8dz1bvjlsL0g",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "scope",
+							"value": "openid interclient_access",
+							"type": "text"
+						},
+						{
+							"key": "oob_code",
+							"value": "{{oob_code}}",
+							"type": "text"
+						},
+						{
+							"key": "login_hint",
+							"value": "abir.hassan@okta.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/oauth2/v1/token",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					],
+					"query": [
+						{
+							"key": "client_id",
+							"value": "0oa53qwVBGfT5fiGn0g4",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "token endpoint direct auth otp sms",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"subjectToken\", jsonData.id_token);",
+							"pm.environment.set(\"actorToken\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00lBG44dLVvRvaQsPQwe7NsDoE1UB7aG5vBk0WV3st",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "client_id",
+						"value": "0oa7xmjnx4HiJmaOb0g5",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "grant_type",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "code",
+						"value": "Y2kPVmGrvyZPTtv80b8XxXIUJCtGoj2bkaxV-oxpf7k",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion_type",
+						"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion",
+						"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjEyMzQ1Njc4OSJ9.eyJhdWQiOiJodHRwOi8vY2xhc3NpYy1sb2NhbC1hcHAub2t0YTEuY29tOjE4MDIvb2F1dGgyL3YxL3Rva2VuIiwiaXNzIjoiMG9hNTNxd1ZCR2ZUNWZpR24wZzQiLCJzdWIiOiIwb2E1M3F3VkJHZlQ1ZmlHbjBnNCIsImV4cCI6MTYzODQ4NzUzMH0.QcUk0ge3rE7tkIXEDO3H8cgluNOTuoOULMBcnvagP0bDiLSt27IhupvtNPh0uWtT5SizPlzQ5FSF_kcljJl-tO8gpKMiOnGpjRJop_q691_5tVYyIwVj0ZrUHic-fvTmbc_9hznIjeoU0wOsJ0Xv4wzTY4eJhXd51BrJP5kt03GRwfOxxjqKJcK4h50ywoyLr9I7Apw13ewD-2gsocw2wF0ULpgPXu_T2xHRSgl-di4yKmm7vEcNhwufckfux8dlGsR7vCTdUolBO6-AnrsJmitI58S6qrbYp7ggqJC-4njoetBLf_VFGu0jfLS0w7uHADPH4vOzFvBeSN-UvXaRfg",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "0oa5kw6q51dFckBE70g5",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "_znjSOjMYjJYfxvijnlksCqtJS5GzWpSXJ0U_svGGjROR3_N7L-5djG2-32tDHLA",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:okta:params:oauth:grant-type:oob",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/authorization-code/callback",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "code_verifier",
+							"value": "lQPWnRUxEncpRPrGI9zwwnN6YpTkipq8dz1bvjlsL0g",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "scope",
+							"value": "openid interclient_access",
+							"type": "text"
+						},
+						{
+							"key": "oob_code",
+							"value": "{{oob_code}}",
+							"type": "text"
+						},
+						{
+							"key": "login_hint",
+							"value": "admin@okta.com",
+							"type": "text"
+						},
+						{
+							"key": "binding_code",
+							"value": "203828",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/oauth2/v1/token",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					],
+					"query": [
+						{
+							"key": "client_id",
+							"value": "0oa53qwVBGfT5fiGn0g4",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "token endpoint direct auth otp sms customAS",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"subjectToken\", jsonData.id_token);",
+							"pm.environment.set(\"actorToken\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00lBG44dLVvRvaQsPQwe7NsDoE1UB7aG5vBk0WV3st",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "client_id",
+						"value": "0oa7xmjnx4HiJmaOb0g5",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "grant_type",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "code",
+						"value": "Y2kPVmGrvyZPTtv80b8XxXIUJCtGoj2bkaxV-oxpf7k",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion_type",
+						"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion",
+						"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjEyMzQ1Njc4OSJ9.eyJhdWQiOiJodHRwOi8vY2xhc3NpYy1sb2NhbC1hcHAub2t0YTEuY29tOjE4MDIvb2F1dGgyL3YxL3Rva2VuIiwiaXNzIjoiMG9hNTNxd1ZCR2ZUNWZpR24wZzQiLCJzdWIiOiIwb2E1M3F3VkJHZlQ1ZmlHbjBnNCIsImV4cCI6MTYzODQ4NzUzMH0.QcUk0ge3rE7tkIXEDO3H8cgluNOTuoOULMBcnvagP0bDiLSt27IhupvtNPh0uWtT5SizPlzQ5FSF_kcljJl-tO8gpKMiOnGpjRJop_q691_5tVYyIwVj0ZrUHic-fvTmbc_9hznIjeoU0wOsJ0Xv4wzTY4eJhXd51BrJP5kt03GRwfOxxjqKJcK4h50ywoyLr9I7Apw13ewD-2gsocw2wF0ULpgPXu_T2xHRSgl-di4yKmm7vEcNhwufckfux8dlGsR7vCTdUolBO6-AnrsJmitI58S6qrbYp7ggqJC-4njoetBLf_VFGu0jfLS0w7uHADPH4vOzFvBeSN-UvXaRfg",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "0oa5kw6q51dFckBE70g5",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "_znjSOjMYjJYfxvijnlksCqtJS5GzWpSXJ0U_svGGjROR3_N7L-5djG2-32tDHLA",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:okta:params:oauth:grant-type:oob",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/authorization-code/callback",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "code_verifier",
+							"value": "lQPWnRUxEncpRPrGI9zwwnN6YpTkipq8dz1bvjlsL0g",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "scope",
+							"value": "openid interclient_access",
+							"type": "text"
+						},
+						{
+							"key": "oob_code",
+							"value": "{{oob_code}}",
+							"type": "text"
+						},
+						{
+							"key": "login_hint",
+							"value": "admin@okta.com",
+							"type": "text"
+						},
+						{
+							"key": "binding_code",
+							"value": "203828",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/oauth2/v1/token",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					],
+					"query": [
+						{
+							"key": "client_id",
+							"value": "0oa53qwVBGfT5fiGn0g4",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "refresh token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"subjectToken\", jsonData.id_token);",
+							"pm.environment.set(\"actorToken\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00lBG44dLVvRvaQsPQwe7NsDoE1UB7aG5vBk0WV3st",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "client_id",
+						"value": "0oa7xmjnx4HiJmaOb0g5",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "grant_type",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "code",
+						"value": "Y2kPVmGrvyZPTtv80b8XxXIUJCtGoj2bkaxV-oxpf7k",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion_type",
+						"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion",
+						"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjEyMzQ1Njc4OSJ9.eyJhdWQiOiJodHRwOi8vY2xhc3NpYy1sb2NhbC1hcHAub2t0YTEuY29tOjE4MDIvb2F1dGgyL3YxL3Rva2VuIiwiaXNzIjoiMG9hNTNxd1ZCR2ZUNWZpR24wZzQiLCJzdWIiOiIwb2E1M3F3VkJHZlQ1ZmlHbjBnNCIsImV4cCI6MTYzODQ4NzUzMH0.QcUk0ge3rE7tkIXEDO3H8cgluNOTuoOULMBcnvagP0bDiLSt27IhupvtNPh0uWtT5SizPlzQ5FSF_kcljJl-tO8gpKMiOnGpjRJop_q691_5tVYyIwVj0ZrUHic-fvTmbc_9hznIjeoU0wOsJ0Xv4wzTY4eJhXd51BrJP5kt03GRwfOxxjqKJcK4h50ywoyLr9I7Apw13ewD-2gsocw2wF0ULpgPXu_T2xHRSgl-di4yKmm7vEcNhwufckfux8dlGsR7vCTdUolBO6-AnrsJmitI58S6qrbYp7ggqJC-4njoetBLf_VFGu0jfLS0w7uHADPH4vOzFvBeSN-UvXaRfg",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "0oa5kw6q51dFckBE70g5",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "8Bkr6zHhi0rKyMzMdiF3wqH_CVlIWkfjOjbGJ5pyT2KnSeq-SSrhZndrLUHOmVkR",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "grant_type",
+							"value": "refresh_token",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/authorization-code/callback",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "code",
+							"value": "Gp6KJfuHDV1TTZa0ThHxB_0x9KH1Kq7ff2j-7qIU7GM",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "scope",
+							"value": "okta.apps.manage openid profile okta.apps.sso",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "otp",
+							"value": "393985",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "login_hint",
+							"value": "admin@okta.com",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "refresh_token",
+							"value": "rugppsbpvj7w24KlTlTuo77enSzVzEC7yOaex1GkiiM",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/oauth2/v1/token",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					],
+					"query": [
+						{
+							"key": "client_id",
+							"value": "0oa53qwVBGfT5fiGn0g4",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "token endpoint direct auth customAS",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"subjectToken\", jsonData.id_token);",
+							"pm.environment.set(\"actorToken\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00lBG44dLVvRvaQsPQwe7NsDoE1UB7aG5vBk0WV3st",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "client_id",
+						"value": "0oa7xmjnx4HiJmaOb0g5",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "grant_type",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "code",
+						"value": "Y2kPVmGrvyZPTtv80b8XxXIUJCtGoj2bkaxV-oxpf7k",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion_type",
+						"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion",
+						"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjEyMzQ1Njc4OSJ9.eyJhdWQiOiJodHRwOi8vY2xhc3NpYy1sb2NhbC1hcHAub2t0YTEuY29tOjE4MDIvb2F1dGgyL3YxL3Rva2VuIiwiaXNzIjoiMG9hNTNxd1ZCR2ZUNWZpR24wZzQiLCJzdWIiOiIwb2E1M3F3VkJHZlQ1ZmlHbjBnNCIsImV4cCI6MTYzODQ4NzUzMH0.QcUk0ge3rE7tkIXEDO3H8cgluNOTuoOULMBcnvagP0bDiLSt27IhupvtNPh0uWtT5SizPlzQ5FSF_kcljJl-tO8gpKMiOnGpjRJop_q691_5tVYyIwVj0ZrUHic-fvTmbc_9hznIjeoU0wOsJ0Xv4wzTY4eJhXd51BrJP5kt03GRwfOxxjqKJcK4h50ywoyLr9I7Apw13ewD-2gsocw2wF0ULpgPXu_T2xHRSgl-di4yKmm7vEcNhwufckfux8dlGsR7vCTdUolBO6-AnrsJmitI58S6qrbYp7ggqJC-4njoetBLf_VFGu0jfLS0w7uHADPH4vOzFvBeSN-UvXaRfg",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "0oa5kw6q51dFckBE70g5",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "8Bkr6zHhi0rKyMzMdiF3wqH_CVlIWkfjOjbGJ5pyT2KnSeq-SSrhZndrLUHOmVkR",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:okta:params:oauth:grant-type:otp",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/authorization-code/callback",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "code733890",
+							"value": "Gp6KJfuHDV1TTZa0ThHxB_0x9KH1Kq7ff2j-7qIU7GM",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "scope",
+							"value": "interclient_access offline_access",
+							"type": "text"
+						},
+						{
+							"key": "otp",
+							"value": "334840",
+							"type": "text"
+						},
+						{
+							"key": "login_hint",
+							"value": "admin@okta.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/oauth2/aus6q31ymHBgmUCiT0g5/v1/token",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"oauth2",
+						"aus6q31ymHBgmUCiT0g5",
+						"v1",
+						"token"
+					],
+					"query": [
+						{
+							"key": "client_id",
+							"value": "0oa53qwVBGfT5fiGn0g4",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "token endpoint direct auth default customAS",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"subjectToken\", jsonData.id_token);",
+							"pm.environment.set(\"actorToken\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00lBG44dLVvRvaQsPQwe7NsDoE1UB7aG5vBk0WV3st",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "client_id",
+						"value": "0oa7xmjnx4HiJmaOb0g5",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "grant_type",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "code",
+						"value": "Y2kPVmGrvyZPTtv80b8XxXIUJCtGoj2bkaxV-oxpf7k",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion_type",
+						"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "client_assertion",
+						"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjEyMzQ1Njc4OSJ9.eyJhdWQiOiJodHRwOi8vY2xhc3NpYy1sb2NhbC1hcHAub2t0YTEuY29tOjE4MDIvb2F1dGgyL3YxL3Rva2VuIiwiaXNzIjoiMG9hNTNxd1ZCR2ZUNWZpR24wZzQiLCJzdWIiOiIwb2E1M3F3VkJHZlQ1ZmlHbjBnNCIsImV4cCI6MTYzODQ4NzUzMH0.QcUk0ge3rE7tkIXEDO3H8cgluNOTuoOULMBcnvagP0bDiLSt27IhupvtNPh0uWtT5SizPlzQ5FSF_kcljJl-tO8gpKMiOnGpjRJop_q691_5tVYyIwVj0ZrUHic-fvTmbc_9hznIjeoU0wOsJ0Xv4wzTY4eJhXd51BrJP5kt03GRwfOxxjqKJcK4h50ywoyLr9I7Apw13ewD-2gsocw2wF0ULpgPXu_T2xHRSgl-di4yKmm7vEcNhwufckfux8dlGsR7vCTdUolBO6-AnrsJmitI58S6qrbYp7ggqJC-4njoetBLf_VFGu0jfLS0w7uHADPH4vOzFvBeSN-UvXaRfg",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "0oa5kw6q51dFckBE70g5",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "8Bkr6zHhi0rKyMzMdiF3wqH_CVlIWkfjOjbGJ5pyT2KnSeq-SSrhZndrLUHOmVkR",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:okta:params:oauth:grant-type:otp",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/authorization-code/callback",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "code",
+							"value": "Gp6KJfuHDV1TTZa0ThHxB_0x9KH1Kq7ff2j-7qIU7GM",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "scope",
+							"value": "openid profile interclient_access offline_access",
+							"type": "text"
+						},
+						{
+							"key": "otp",
+							"value": "141614",
+							"type": "text"
+						},
+						{
+							"key": "login_hint",
+							"value": "admin@okta.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/oauth2/default/v1/token",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"oauth2",
+						"default",
+						"v1",
+						"token"
+					],
+					"query": [
+						{
+							"key": "client_id",
+							"value": "0oa53qwVBGfT5fiGn0g4",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Token Exchange aws-cli",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"web_sso_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "0oa5kw6q51dFckBE70g5",
+							"type": "text"
+						},
+						{
+							"key": "actor_token",
+							"value": "{{actorToken}}",
+							"type": "text"
+						},
+						{
+							"key": "actor_token_type",
+							"value": "urn:ietf:params:oauth:token-type:access_token",
+							"type": "text"
+						},
+						{
+							"key": "subject_token",
+							"value": "{{subjectToken}}",
+							"type": "text"
+						},
+						{
+							"key": "subject_token_type",
+							"value": "urn:ietf:params:oauth:token-type:id_token",
+							"type": "text"
+						},
+						{
+							"key": "requested_token_type",
+							"value": "urn:okta:oauth:token-type:web_sso_token",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "urn:okta:apps:0oa5mihmA6vMpXcm50g5",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:token-exchange",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/oauth2/v1/token",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Token Exchange OIDC",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"web_sso_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "actor_token",
+							"value": "{{actorToken}}",
+							"type": "text"
+						},
+						{
+							"key": "actor_token_type",
+							"value": "urn:ietf:params:oauth:token-type:access_token",
+							"type": "text"
+						},
+						{
+							"key": "subject_token",
+							"value": "{{subjectToken}}",
+							"type": "text"
+						},
+						{
+							"key": "subject_token_type",
+							"value": "urn:ietf:params:oauth:token-type:id_token",
+							"type": "text"
+						},
+						{
+							"key": "requested_token_type",
+							"value": "urn:okta:params:oauth:token-type:interclient_token",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "urn:okta:apps:{{target_app}}",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:token-exchange",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "UxCtzYvW_FJYzdF86XMYhNDpHRKfK3odcvl-j8wpk8MR_ECazLxbF82GRyxCa2so",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/oauth2/v1/token",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Token Exchange OIDC customAS",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"web_sso_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "0oa5kw6q51dFckBE70g5",
+							"type": "text"
+						},
+						{
+							"key": "actor_token",
+							"value": "{{actorToken}}",
+							"type": "text"
+						},
+						{
+							"key": "actor_token_type",
+							"value": "urn:ietf:params:oauth:token-type:access_token",
+							"type": "text"
+						},
+						{
+							"key": "subject_token",
+							"value": "{{subjectToken}}",
+							"type": "text"
+						},
+						{
+							"key": "subject_token_type",
+							"value": "urn:ietf:params:oauth:token-type:id_token",
+							"type": "text"
+						},
+						{
+							"key": "requested_token_type",
+							"value": "urn:okta:params:oauth:token-type:interclient_token",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "urn:okta:apps:0oa1elyw9EAkUNUrW0g5",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:token-exchange",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/oauth2/aus6q31ymHBgmUCiT0g5/v1/token",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"oauth2",
+						"aus6q31ymHBgmUCiT0g5",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Token Exchange OIDC customAS default",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"web_sso_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "0oa5kw6q51dFckBE70g5",
+							"type": "text"
+						},
+						{
+							"key": "actor_token",
+							"value": "{{actorToken}}",
+							"type": "text"
+						},
+						{
+							"key": "actor_token_type",
+							"value": "urn:ietf:params:oauth:token-type:access_token",
+							"type": "text"
+						},
+						{
+							"key": "subject_token",
+							"value": "{{subjectToken}}",
+							"type": "text"
+						},
+						{
+							"key": "subject_token_type",
+							"value": "urn:ietf:params:oauth:token-type:id_token",
+							"type": "text"
+						},
+						{
+							"key": "requested_token_type",
+							"value": "urn:okta:params:oauth:token-type:interclient_token",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "urn:okta:apps:0oa1elyw9EAkUNUrW0g5",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:token-exchange",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/oauth2/aus6q31ymHBgmUCiT0g5/v1/token",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"oauth2",
+						"aus6q31ymHBgmUCiT0g5",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Token Exchange SAML",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"web_sso_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "0oa5kw6q51dFckBE70g5",
+							"type": "text"
+						},
+						{
+							"key": "actor_token",
+							"value": "{{actorToken}}",
+							"type": "text"
+						},
+						{
+							"key": "actor_token_type",
+							"value": "urn:ietf:params:oauth:token-type:access_token",
+							"type": "text"
+						},
+						{
+							"key": "subject_token",
+							"value": "{{subjectToken}}",
+							"type": "text"
+						},
+						{
+							"key": "subject_token_type",
+							"value": "urn:ietf:params:oauth:token-type:id_token",
+							"type": "text"
+						},
+						{
+							"key": "requested_token_type",
+							"value": "urn:okta:params:oauth:token-type:interclient_token",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "urn:okta:apps:0oa8ghelqWXs70qD80g5",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:token-exchange",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/oauth2/v1/token",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"oauth2",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Token Exchange SAML customAS",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"web_sso_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "0oa5kw6q51dFckBE70g5",
+							"type": "text"
+						},
+						{
+							"key": "actor_token",
+							"value": "{{actorToken}}",
+							"type": "text"
+						},
+						{
+							"key": "actor_token_type",
+							"value": "urn:ietf:params:oauth:token-type:access_token",
+							"type": "text"
+						},
+						{
+							"key": "subject_token",
+							"value": "{{subjectToken}}",
+							"type": "text"
+						},
+						{
+							"key": "subject_token_type",
+							"value": "urn:ietf:params:oauth:token-type:id_token",
+							"type": "text"
+						},
+						{
+							"key": "requested_token_type",
+							"value": "urn:okta:params:oauth:token-type:interclient_token",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "urn:okta:apps:0oa8ghelqWXs70qD80g5",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:token-exchange",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/oauth2/aus6q31ymHBgmUCiT0g5/v1/token",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"oauth2",
+						"aus6q31ymHBgmUCiT0g5",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Apps",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "SSWS 00GIVxFTYrmFZLo-uqUe7G3yt5B8B7KVmVx6SLS7Kn"
+					}
+				],
+				"url": {
+					"raw": "http://oie.okta1.com:1802/api/v1/apps",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"api",
+						"v1",
+						"apps"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Apps Copy",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "SSWS 00GIVxFTYrmFZLo-uqUe7G3yt5B8B7KVmVx6SLS7Kn"
+					}
+				],
+				"url": {
+					"raw": "http://oie.okta1.com:1802/api/v1/apps",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"api",
+						"v1",
+						"apps"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get trusted Apps",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "key",
+							"value": "00XDA5CXe2flXPVKo7ERaOa99iMF3y93CKoiGOjpl6",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00CjweeiYrOwjgnISZn46MG29i9RLLqLVI_X5Pd_xf",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://oie.okta1.com:1802/api/v1/apps/0oa9ztwixurIf8ANj0g5/interclient-allowed-apps",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"api",
+						"v1",
+						"apps",
+						"0oa9ztwixurIf8ANj0g5",
+						"interclient-allowed-apps"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add trusted Apps",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "key",
+							"value": "00XDA5CXe2flXPVKo7ERaOa99iMF3y93CKoiGOjpl6",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00CjweeiYrOwjgnISZn46MG29i9RLLqLVI_X5Pd_xf",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"0oa5kw6q51dFckBE70g5\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/api/v1/apps/0oa5kw6q51dFckBE70g5/interclient-allowed-apps",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"api",
+						"v1",
+						"apps",
+						"0oa5kw6q51dFckBE70g5",
+						"interclient-allowed-apps"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add trusted Apps oidc web app",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "key",
+							"value": "00XDA5CXe2flXPVKo7ERaOa99iMF3y93CKoiGOjpl6",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00CjweeiYrOwjgnISZn46MG29i9RLLqLVI_X5Pd_xf",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"0oa89kz1eLOYoJEX30g5\"\n}"
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/api/v1/apps/0oa1elyw9EAkUNUrW0g5/interclient-allowed-apps",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"api",
+						"v1",
+						"apps",
+						"0oa1elyw9EAkUNUrW0g5",
+						"interclient-allowed-apps"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add trusted Apps saml",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "key",
+							"value": "00XDA5CXe2flXPVKo7ERaOa99iMF3y93CKoiGOjpl6",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00CjweeiYrOwjgnISZn46MG29i9RLLqLVI_X5Pd_xf",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"0oa9vq1tHtlxbRIPZ0g5\"\n}"
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/api/v1/apps/0oa8ghelqWXs70qD80g5/interclient-allowed-apps",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"api",
+						"v1",
+						"apps",
+						"0oa8ghelqWXs70qD80g5",
+						"interclient-allowed-apps"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "key",
+							"value": "00XDA5CXe2flXPVKo7ERaOa99iMF3y93CKoiGOjpl6",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00CjweeiYrOwjgnISZn46MG29i9RLLqLVI_X5Pd_xf",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/api/v1/apps/0oaa3hqaRjrAdaXYu0g5/interclient-allowed-apps/0oa5kw6q51dFckBE70g5",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"api",
+						"v1",
+						"apps",
+						"0oaa3hqaRjrAdaXYu0g5",
+						"interclient-allowed-apps",
+						"0oa5kw6q51dFckBE70g5"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get trusted Apps",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "key",
+							"value": "00XDA5CXe2flXPVKo7ERaOa99iMF3y93CKoiGOjpl6",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00CjweeiYrOwjgnISZn46MG29i9RLLqLVI_X5Pd_xf",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "id",
+							"value": "0oa5mihmA6vMpXcm50g5",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/api/v1/apps/0oa89l07ra8C80TLE0g5/interclient-allowed-apps",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"api",
+						"v1",
+						"apps",
+						"0oa89l07ra8C80TLE0g5",
+						"interclient-allowed-apps"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get target Apps",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "key",
+							"value": "00XDA5CXe2flXPVKo7ERaOa99iMF3y93CKoiGOjpl6",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00CjweeiYrOwjgnISZn46MG29i9RLLqLVI_X5Pd_xf",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "id",
+							"value": "0oa5mihmA6vMpXcm50g5",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/api/v1/apps/0oa1elyw9EAkUNUrW0g5/interclient-target-apps?after=\"0oa5kw6q51dFckBE70g5\"",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"api",
+						"v1",
+						"apps",
+						"0oa1elyw9EAkUNUrW0g5",
+						"interclient-target-apps"
+					],
+					"query": [
+						{
+							"key": "after",
+							"value": "\"0oa5kw6q51dFckBE70g5\""
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete sessions",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept-encoding": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "key",
+							"value": "00XDA5CXe2flXPVKo7ERaOa99iMF3y93CKoiGOjpl6",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "SSWS 00CjweeiYrOwjgnISZn46MG29i9RLLqLVI_X5Pd_xf",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "id",
+							"value": "0oa5mihmA6vMpXcm50g5",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://oie.okta1.com:1802/api/v1/sessions/idxlWOzBqP1QNyB9uAqnReNmQ",
+					"protocol": "http",
+					"host": [
+						"oie",
+						"okta1",
+						"com"
+					],
+					"port": "1802",
+					"path": [
+						"api",
+						"v1",
+						"sessions",
+						"idxlWOzBqP1QNyB9uAqnReNmQ"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

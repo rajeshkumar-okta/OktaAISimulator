@@ -1,0 +1,358 @@
+{
+  "id": "device-grant",
+  "name": "Device Authorization Grant",
+  "subtitle": "RFC 8628 - OAuth 2.0 Device Authorization Grant",
+  "description": "The Device Authorization Grant enables input-constrained devices (smart TVs, CLI tools, IoT devices) to obtain user authorization without requiring the device to handle complex user input. The user authorizes the device on a separate device with a browser.",
+  "icon": "tv",
+  "category": "oauth",
+  "tags": [
+    "RFC 8628",
+    "OAuth 2.0",
+    "Device Flow",
+    "IoT"
+  ],
+  "status": "available",
+  "state": "ready",
+  "documentation": {
+    "url": "https://developer.okta.com/docs/guides/device-authorization-grant/main/",
+    "icon": "book",
+    "label": "Okta Device Authorization Guide"
+  },
+  "configType": "device-grant-flow",
+  "storageKey": "okta_device_grant_config",
+  "storageMetaKey": "okta_device_grant_config_meta",
+  "configSections": [
+    {
+      "id": "okta-settings",
+      "title": "Okta Settings",
+      "layout": "single",
+      "fields": [
+        "oktaDomain",
+        "authServerMode"
+      ]
+    },
+    {
+      "id": "client-settings",
+      "title": "Client Configuration",
+      "layout": "single",
+      "fields": [
+        "clientId"
+      ]
+    },
+    {
+      "id": "scope-settings",
+      "title": "Scopes",
+      "layout": "single",
+      "fields": [
+        "scopes"
+      ]
+    }
+  ],
+  "configFields": [
+    {
+      "id": "oktaDomain",
+      "label": "Okta Domain",
+      "type": "text",
+      "placeholder": "https://your-org.okta.com",
+      "required": true,
+      "autoCorrect": "oktaDomain",
+      "helpText": "Your Okta organization URL"
+    },
+    {
+      "id": "authServerMode",
+      "label": "Authorization Server",
+      "type": "auth-server-picker",
+      "default": "default",
+      "options": [
+        {
+          "value": "org",
+          "label": "Org Authorization Server (oauth2/v1)"
+        },
+        {
+          "value": "default",
+          "label": "Default (oauth2/default/v1)"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ]
+    },
+    {
+      "id": "authorizationServerId",
+      "label": "Custom Auth Server ID",
+      "type": "text",
+      "placeholder": "your-auth-server-id",
+      "conditionalOn": {
+        "field": "authServerMode",
+        "value": "custom"
+      }
+    },
+    {
+      "id": "clientId",
+      "label": "Client ID",
+      "type": "text",
+      "placeholder": "0oa...",
+      "required": true,
+      "helpText": "OAuth 2.0 Client ID for a Native/SPA application"
+    },
+    {
+      "id": "scopes",
+      "label": "Scopes",
+      "type": "scope-selector",
+      "default": "openid profile email offline_access",
+      "helpText": "Select OAuth scopes to request"
+    }
+  ],
+  "steps": [
+    {
+      "number": 1,
+      "id": "request-device-code",
+      "title": "Request Device Code",
+      "actor": "device",
+      "actorLabel": "Device",
+      "actorIcon": "tv",
+      "description": "The device requests a device code and user code from Okta's device authorization endpoint. The device code is used for polling, and the user code is displayed to the user.",
+      "initiallyLocked": false,
+      "button": {
+        "label": "Get Device Code",
+        "action": "api"
+      },
+      "endpoints": [
+        {
+          "label": "Device Authorize",
+          "previewId": "device-endpoint-preview",
+          "template": "{{basePath}}/device/authorize"
+        }
+      ],
+      "curl": {
+        "method": "POST",
+        "urlTemplate": "{{oktaDomain}}{{basePath}}/device/authorize",
+        "headers": {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        "bodyParams": [
+          {
+            "name": "client_id",
+            "source": "config.clientId"
+          },
+          {
+            "name": "scope",
+            "source": "config.scopes"
+          }
+        ]
+      },
+      "api": {
+        "endpoint": "/api/device/authorize",
+        "method": "POST",
+        "bodyTemplate": {
+          "config": "{{config}}"
+        },
+        "storeResults": [
+          {
+            "from": "device_code",
+            "to": "deviceCode"
+          },
+          {
+            "from": "user_code",
+            "to": "userCode"
+          },
+          {
+            "from": "verification_uri",
+            "to": "verificationUri"
+          },
+          {
+            "from": "verification_uri_complete",
+            "to": "verificationUriComplete"
+          },
+          {
+            "from": "interval",
+            "to": "pollingInterval",
+            "default": 5
+          },
+          {
+            "from": "expires_in",
+            "to": "expiresIn",
+            "default": 600
+          }
+        ]
+      },
+      "onSuccess": {
+        "unlockSteps": [
+          2,
+          3
+        ],
+        "updateDeviceCodeDisplays": true
+      }
+    },
+    {
+      "number": 2,
+      "id": "user-authorization",
+      "title": "User Authorization",
+      "actor": "user",
+      "actorLabel": "User",
+      "actorIcon": "user",
+      "description": "The user opens the verification URL on their phone or computer and enters the user code to authorize the device.",
+      "initiallyLocked": true,
+      "deviceCodeDisplay": {
+        "userCodeSource": "state.userCode",
+        "verificationUriSource": "state.verificationUri",
+        "verificationUriCompleteSource": "state.verificationUriComplete"
+      },
+      "button": {
+        "label": "Open Verification URL",
+        "action": "openUrl",
+        "urlSource": "state.verificationUriComplete || state.verificationUri",
+        "showAsQR": true
+      },
+      "curl": {
+        "method": "GET",
+        "urlTemplate": "{{state.verificationUriComplete}}",
+        "headers": {},
+        "bodyParams": [],
+        "showAsUrl": true
+      }
+    },
+    {
+      "number": 3,
+      "id": "poll-for-token",
+      "title": "Poll for Token",
+      "actor": "device",
+      "actorLabel": "Device",
+      "actorIcon": "tv",
+      "description": "The device polls Okta's token endpoint using the device code. Polling continues until the user completes authorization or the code expires.",
+      "initiallyLocked": true,
+      "button": {
+        "label": "Start Polling",
+        "action": "poll"
+      },
+      "stopButton": {
+        "label": "Stop Polling",
+        "id": "btn-stop-polling"
+      },
+      "endpoints": [
+        {
+          "label": "Token",
+          "previewId": "token-endpoint-preview",
+          "template": "{{basePath}}/token"
+        }
+      ],
+      "curl": {
+        "method": "POST",
+        "urlTemplate": "{{oktaDomain}}{{basePath}}/token",
+        "headers": {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        "bodyParams": [
+          {
+            "name": "grant_type",
+            "value": "urn:ietf:params:oauth:grant-type:device_code"
+          },
+          {
+            "name": "client_id",
+            "source": "config.clientId"
+          },
+          {
+            "name": "device_code",
+            "source": "state.deviceCode"
+          }
+        ]
+      },
+      "polling": {
+        "endpoint": "/api/device/token",
+        "method": "POST",
+        "bodyTemplate": {
+          "config": "{{config}}",
+          "deviceCode": "{{state.deviceCode}}"
+        },
+        "intervalSource": "state.pollingInterval",
+        "successCondition": "response.access_token",
+        "pendingCondition": "response.error === 'authorization_pending'",
+        "slowDownCondition": "response.error === 'slow_down'",
+        "expiredCondition": "response.error === 'expired_token'",
+        "deniedCondition": "response.error === 'access_denied'",
+        "storeResults": [
+          {
+            "from": "access_token",
+            "to": "accessToken"
+          },
+          {
+            "from": "id_token",
+            "to": "idToken"
+          },
+          {
+            "from": "refresh_token",
+            "to": "refreshToken"
+          }
+        ]
+      },
+      "onSuccess": {
+        "showTokenDisplay": true
+      }
+    }
+  ],
+  "tokenDisplay": {
+    "show": true,
+    "containerId": "token-details",
+    "tabs": [
+      {
+        "id": "access-token",
+        "label": "Access Token",
+        "tokenKey": "accessToken",
+        "decode": true
+      },
+      {
+        "id": "id-token",
+        "label": "ID Token",
+        "tokenKey": "idToken",
+        "decode": true
+      },
+      {
+        "id": "refresh-token",
+        "label": "Refresh Token",
+        "tokenKey": "refreshToken",
+        "decode": false
+      }
+    ]
+  },
+  "customHandlers": {
+    "step1": "deviceGrantRequestCode",
+    "step2": "deviceGrantOpenVerification",
+    "step3": "deviceGrantPollForToken"
+  },
+  "stateSchema": {
+    "deviceCode": {
+      "type": "string"
+    },
+    "userCode": {
+      "type": "string"
+    },
+    "verificationUri": {
+      "type": "string"
+    },
+    "verificationUriComplete": {
+      "type": "string"
+    },
+    "pollingInterval": {
+      "type": "number",
+      "default": 5
+    },
+    "expiresIn": {
+      "type": "number",
+      "default": 600
+    },
+    "pollCount": {
+      "type": "number",
+      "default": 0
+    },
+    "accessToken": {
+      "type": "string"
+    },
+    "idToken": {
+      "type": "string"
+    },
+    "refreshToken": {
+      "type": "string"
+    }
+  }
+}

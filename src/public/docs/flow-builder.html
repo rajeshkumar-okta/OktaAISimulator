@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flow Builder Guide - Okta AI Simulator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      color: #e0e0e0;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #a0c4ff;
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .back-link:hover {
+      color: #fff;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #a0a0a0;
+      margin-bottom: 2rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      color: #fff;
+      margin: 2rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      color: #fff;
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    h4 {
+      font-size: 1rem;
+      color: #a0c4ff;
+      margin: 1rem 0 0.5rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 0.85em;
+    }
+
+    pre {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    ul, ol {
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    .note {
+      background: rgba(100, 100, 255, 0.15);
+      border: 1px solid rgba(100, 100, 255, 0.3);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    .note-title {
+      font-weight: 600;
+      color: #a0c4ff;
+      margin-bottom: 0.5rem;
+    }
+
+    .warning {
+      background: rgba(255, 180, 100, 0.15);
+      border: 1px solid rgba(255, 180, 100, 0.3);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    .warning-title {
+      font-weight: 600;
+      color: #ffb464;
+      margin-bottom: 0.5rem;
+    }
+
+    a {
+      color: #a0c4ff;
+    }
+
+    a:hover {
+      color: #fff;
+    }
+
+    .toc {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin: 1rem 0 2rem;
+    }
+
+    .toc-title {
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    .toc ul {
+      margin: 0;
+      padding-left: 1rem;
+    }
+
+    .toc li {
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-link">&larr; Back to Dashboard</a>
+
+    <h1>Flow Builder Guide</h1>
+    <p class="subtitle">Create and customize OAuth authentication flow simulators using JSON definitions.</p>
+
+    <div class="toc">
+      <div class="toc-title">Contents</div>
+      <ul>
+        <li><a href="#accessing">Accessing the Flow Builder</a></li>
+        <li><a href="#edit-mode">Edit Mode</a></li>
+        <li><a href="#flow-definition">Flow Definition Structure</a></li>
+        <li><a href="#config-fields">Configuration Fields</a></li>
+        <li><a href="#steps">Step Definitions</a></li>
+        <li><a href="#curl">cURL Configuration</a></li>
+        <li><a href="#device-code">Device Code Display</a></li>
+        <li><a href="#api">API Endpoints</a></li>
+      </ul>
+    </div>
+
+    <h2 id="accessing">Accessing the Flow Builder</h2>
+    <p>The flow builder uses a generic flow page that renders flows from JSON definitions.</p>
+
+    <h3>URL Format</h3>
+    <pre><code>/flow.html?flow={flow-id}</code></pre>
+
+    <h3>Available Flows</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Flow ID</th>
+          <th>Description</th>
+          <th>State</th>
+          <th>URL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>device-grant</code></td>
+          <td>Device Authorization Grant (RFC 8628)</td>
+          <td>ready</td>
+          <td><a href="/flow.html?flow=device-grant">/flow.html?flow=device-grant</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="edit-mode">Edit Mode</h2>
+    <p>Toggle Edit mode using the switch in the top-right corner of the flow page to:</p>
+    <ul>
+      <li><strong>Edit steps</strong> - Click the pencil icon on any step to open the step editor</li>
+      <li><strong>Reorder steps</strong> - Use the up/down arrows to change step order</li>
+      <li><strong>Add steps</strong> - Click "+ Add Step After" buttons between steps</li>
+      <li><strong>Delete steps</strong> - Remove steps via the step editor</li>
+      <li><strong>Change flow state</strong> - Set to draft, testing, or ready</li>
+      <li><strong>Export flow</strong> - Download the flow definition as JSON</li>
+    </ul>
+
+    <h3>Flow States</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>State</th>
+          <th>Dashboard Display</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>draft</code></td><td>Small icon in "Work in Progress"</td><td>Flow is being developed</td></tr>
+        <tr><td><code>testing</code></td><td>Small icon in "Work in Progress"</td><td>Flow is being tested</td></tr>
+        <tr><td><code>ready</code></td><td>Full tile</td><td>Flow is ready for use</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="flow-definition">Flow Definition Structure</h2>
+    <p>Create flow definition files in <code>src/flows/definitions/</code>:</p>
+    <pre><code>{
+  "id": "my-flow",
+  "name": "My Custom Flow",
+  "subtitle": "A custom OAuth flow",
+  "description": "Description of what this flow does.",
+  "icon": "key",
+  "category": "oauth",
+  "tags": ["OAuth 2.0", "Custom"],
+  "status": "available",
+  "state": "ready",
+
+  "documentation": {
+    "url": "https://developer.okta.com/docs/...",
+    "icon": "book",
+    "label": "Implementation Guide"
+  },
+
+  "configType": "my-flow",
+  "storageKey": "okta_my_flow_config",
+  "storageMetaKey": "okta_my_flow_config_meta",
+
+  "configSections": [...],
+  "configFields": [...],
+  "steps": [...],
+  "tokenDisplay": {...},
+  "stateSchema": {...}
+}</code></pre>
+
+    <h3>Top-Level Properties</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>string</td><td>Unique flow identifier (used in URL)</td></tr>
+        <tr><td><code>name</code></td><td>string</td><td>Display name</td></tr>
+        <tr><td><code>subtitle</code></td><td>string</td><td>Short description shown below name</td></tr>
+        <tr><td><code>description</code></td><td>string</td><td>Longer description</td></tr>
+        <tr><td><code>icon</code></td><td>string</td><td>Icon name (tv, key, user, shield, etc.)</td></tr>
+        <tr><td><code>category</code></td><td>string</td><td>Category for grouping (oauth, auth, etc.)</td></tr>
+        <tr><td><code>tags</code></td><td>array</td><td>Tags for filtering</td></tr>
+        <tr><td><code>status</code></td><td>string</td><td>"available" or "coming-soon"</td></tr>
+        <tr><td><code>state</code></td><td>string</td><td>"draft", "testing", or "ready"</td></tr>
+        <tr><td><code>documentation</code></td><td>object</td><td>Link to external documentation</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="config-fields">Configuration Fields</h2>
+
+    <h3>Field Types</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>text</code></td><td>Standard text input</td></tr>
+        <tr><td><code>password</code></td><td>Password input (masked)</td></tr>
+        <tr><td><code>textarea</code></td><td>Multi-line text</td></tr>
+        <tr><td><code>select</code></td><td>Dropdown with options</td></tr>
+        <tr><td><code>auth-server-picker</code></td><td>Authorization server selector (org/default/custom)</td></tr>
+        <tr><td><code>scope-selector</code></td><td>OAuth scope picker with tiles</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Field Definition</h3>
+    <pre><code>{
+  "id": "clientId",
+  "label": "Client ID",
+  "type": "text",
+  "placeholder": "0oa...",
+  "required": true,
+  "helpText": "OAuth 2.0 Client ID",
+  "autoCorrect": "oktaDomain",
+  "conditionalOn": { "field": "authServerMode", "value": "custom" }
+}</code></pre>
+
+    <h2 id="steps">Step Definitions</h2>
+
+    <h3>Step Structure</h3>
+    <pre><code>{
+  "number": 1,
+  "id": "request-device-code",
+  "title": "Request Device Code",
+  "actor": "device",
+  "actorLabel": "Device",
+  "actorIcon": "tv",
+  "description": "Request a device code from the authorization server.",
+  "initiallyLocked": false,
+  "button": {...},
+  "endpoints": [...],
+  "curl": {...},
+  "api": {...},
+  "polling": {...},
+  "deviceCodeDisplay": {...},
+  "onSuccess": {...}
+}</code></pre>
+
+    <h3>Actor Types</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Actor</th>
+          <th>Color</th>
+          <th>Use For</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>device</code></td><td>Purple</td><td>Device/client actions</td></tr>
+        <tr><td><code>user</code></td><td>Green</td><td>User actions</td></tr>
+        <tr><td><code>agent</code></td><td>Orange</td><td>Agent/service actions</td></tr>
+        <tr><td><code>server</code></td><td>Gray</td><td>Server-side operations</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Button Actions</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>api</code></td><td>Make an API call to the backend</td></tr>
+        <tr><td><code>openUrl</code></td><td>Open a URL in a new tab</td></tr>
+        <tr><td><code>poll</code></td><td>Start polling an endpoint</td></tr>
+        <tr><td><code>oauth</code></td><td>Initiate OAuth popup flow</td></tr>
+      </tbody>
+    </table>
+
+    <h3>onSuccess Actions</h3>
+    <pre><code>"onSuccess": {
+  "unlockSteps": [2, 3],
+  "showTokenDisplay": true,
+  "showDeviceCodeDisplay": true
+}</code></pre>
+
+    <h2 id="curl">cURL Configuration</h2>
+    <p>Configure how cURL commands are displayed for each step.</p>
+
+    <h3>Basic cURL</h3>
+    <pre><code>"curl": {
+  "method": "POST",
+  "urlTemplate": "{{oktaDomain}}{{basePath}}/token",
+  "headers": {
+    "Content-Type": "application/x-www-form-urlencoded"
+  },
+  "bodyParams": [
+    { "name": "client_id", "source": "config.clientId" },
+    { "name": "scope", "source": "config.scopes" },
+    { "name": "grant_type", "value": "urn:ietf:params:oauth:grant-type:device_code" }
+  ]
+}</code></pre>
+
+    <h3>cURL Display Options</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>method</code></td><td>string</td><td>HTTP method (GET, POST, PUT, DELETE)</td></tr>
+        <tr><td><code>urlTemplate</code></td><td>string</td><td>URL with template variables</td></tr>
+        <tr><td><code>headers</code></td><td>object</td><td>Request headers</td></tr>
+        <tr><td><code>bodyParams</code></td><td>array</td><td>Body parameters with name, source, or value</td></tr>
+        <tr><td><code>showAsUrl</code></td><td>boolean</td><td>Display only the URL (hide full cURL command)</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="device-code">Device Code Display</h2>
+    <p>For device authorization flows, display the user code and verification URL inline within a step:</p>
+
+    <pre><code>"deviceCodeDisplay": {
+  "userCodeSource": "state.userCode",
+  "verificationUriSource": "state.verificationUri",
+  "verificationUriCompleteSource": "state.verificationUriComplete"
+}</code></pre>
+
+    <p>This renders a prominent display with:</p>
+    <ul>
+      <li>The user code in large text</li>
+      <li>The verification URL as a clickable link</li>
+    </ul>
+
+    <h2 id="api">API Configuration</h2>
+
+    <h3>Step API Call</h3>
+    <pre><code>"api": {
+  "endpoint": "/api/device/authorize",
+  "method": "POST",
+  "bodyTemplate": {
+    "config": "{{config}}"
+  },
+  "storeResults": [
+    { "from": "device_code", "to": "deviceCode" },
+    { "from": "user_code", "to": "userCode" },
+    { "from": "verification_uri", "to": "verificationUri" },
+    { "from": "interval", "to": "pollingInterval", "default": 5 }
+  ]
+}</code></pre>
+
+    <h3>Polling Configuration</h3>
+    <pre><code>"polling": {
+  "endpoint": "/api/device/token",
+  "method": "POST",
+  "bodyTemplate": {
+    "config": "{{config}}",
+    "deviceCode": "{{state.deviceCode}}"
+  },
+  "intervalSource": "state.pollingInterval",
+  "successCondition": "response.access_token",
+  "pendingCondition": "response.error === 'authorization_pending'",
+  "slowDownCondition": "response.error === 'slow_down'",
+  "expiredCondition": "response.error === 'expired_token'",
+  "deniedCondition": "response.error === 'access_denied'",
+  "storeResults": [
+    { "from": "access_token", "to": "accessToken" },
+    { "from": "id_token", "to": "idToken" }
+  ]
+}</code></pre>
+
+    <h2>Token Display</h2>
+    <pre><code>"tokenDisplay": {
+  "show": true,
+  "containerId": "token-details",
+  "tabs": [
+    {
+      "id": "access-token",
+      "label": "Access Token",
+      "tokenKey": "accessToken",
+      "decode": true
+    },
+    {
+      "id": "id-token",
+      "label": "ID Token",
+      "tokenKey": "idToken",
+      "decode": true
+    },
+    {
+      "id": "refresh-token",
+      "label": "Refresh Token",
+      "tokenKey": "refreshToken",
+      "decode": false
+    }
+  ]
+}</code></pre>
+
+    <h2>State Schema</h2>
+    <p>Define the state variables your flow uses:</p>
+    <pre><code>"stateSchema": {
+  "deviceCode": { "type": "string" },
+  "userCode": { "type": "string" },
+  "verificationUri": { "type": "string" },
+  "verificationUriComplete": { "type": "string" },
+  "pollingInterval": { "type": "number", "default": 5 },
+  "accessToken": { "type": "string" },
+  "idToken": { "type": "string" }
+}</code></pre>
+
+    <h2 id="api">API Endpoints</h2>
+
+    <h3>Flow Definition API</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Endpoint</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>GET</td><td><code>/api/flows</code></td><td>List all flow summaries</td></tr>
+        <tr><td>GET</td><td><code>/api/flows/:id</code></td><td>Get flow definition</td></tr>
+        <tr><td>GET</td><td><code>/api/flows/:id?reload=true</code></td><td>Get flow (bypass cache)</td></tr>
+        <tr><td>GET</td><td><code>/api/flows/:id/validate</code></td><td>Validate flow definition</td></tr>
+        <tr><td>POST</td><td><code>/api/flows/validate</code></td><td>Validate flow from body</td></tr>
+        <tr><td>POST</td><td><code>/api/flows/cache/clear</code></td><td>Clear flow cache</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Validating Flow Definitions</h3>
+    <pre><code># Validate a flow by ID
+curl http://localhost:3000/api/flows/my-flow/validate
+
+# Validate a flow definition (POST body)
+curl -X POST http://localhost:3000/api/flows/validate \
+  -H "Content-Type: application/json" \
+  -d @src/flows/definitions/my-flow.json
+
+# Clear flow cache (development)
+curl -X POST http://localhost:3000/api/flows/cache/clear</code></pre>
+
+    <div class="note">
+      <div class="note-title">Tips</div>
+      <ul>
+        <li><strong>Storage Keys:</strong> Use underscores in storage keys (e.g., <code>okta_my_flow_config</code>)</li>
+        <li><strong>Step Numbers:</strong> Must be sequential starting from 1</li>
+        <li><strong>Field IDs:</strong> Must be unique across the flow</li>
+        <li><strong>Template Variables:</strong> Use <code>{{config.fieldId}}</code>, <code>{{state.key}}</code>, or <code>{{basePath}}</code></li>
+        <li><strong>Cache:</strong> Use <code>?reload=true</code> or clear cache during development</li>
+      </ul>
+    </div>
+
+    <div class="warning">
+      <div class="warning-title">Development Note</div>
+      <p>Flow definitions are cached on the server. After editing JSON files, either:</p>
+      <ul>
+        <li>Restart the server</li>
+        <li>Call <code>POST /api/flows/cache/clear</code></li>
+        <li>Access the flow with <code>?reload=true</code> (automatic in flow.html)</li>
+      </ul>
+    </div>
+
+    <h2>Related Files</h2>
+    <ul>
+      <li>Flow definitions: <code>src/flows/definitions/*.json</code></li>
+      <li>Flow schema: <code>src/flows/schema/flow-schema.json</code></li>
+      <li>Flow registry: <code>src/flows/registry.js</code></li>
+      <li>Flow API routes: <code>src/routes/flows.js</code></li>
+      <li>Flow engine: <code>src/public/lib/flow-engine/</code></li>
+      <li>Generic flow page: <code>src/public/flow.html</code></li>
+    </ul>
+  </div>
+</body>
+</html>

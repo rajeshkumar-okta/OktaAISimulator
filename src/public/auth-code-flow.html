@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authorization Code Flow - Okta</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">← All Flows</a>
+    </nav>
+    <header>
+      <h1>Authorization Code Flow</h1>
+      <p class="subtitle">OAuth 2.0 / OpenID Connect Authentication</p>
+    </header>
+
+    <!-- Configuration Panel -->
+    <details class="config-panel" id="config-panel" open>
+      <summary>
+        Configuration <span class="config-status" id="config-status"></span>
+        <button class="btn-icon" id="load-saved-btn" title="Load saved configuration">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3.5A1.5 1.5 0 013.5 2h2.879a1.5 1.5 0 011.06.44l1.122 1.12A1.5 1.5 0 009.62 4H12.5A1.5 1.5 0 0114 5.5v7a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 12.5v-9z"/></svg>
+        </button>
+      </summary>
+      <div class="config-fields">
+        <div class="config-row">
+          <label for="cfg-oktaDomain">Okta Domain</label>
+          <input type="text" id="cfg-oktaDomain" placeholder="https://your-domain.okta.com">
+        </div>
+        <div class="config-section-divider">
+          <span>Application</span>
+        </div>
+        <div class="config-row-split">
+          <div class="config-row-half">
+            <label for="cfg-clientId">Client ID</label>
+            <input type="text" id="cfg-clientId" placeholder="OAuth 2.0 Client ID">
+          </div>
+          <div class="config-row-half">
+            <label for="cfg-clientAuthMethod">Client Authentication</label>
+            <select id="cfg-clientAuthMethod">
+              <option value="client_secret">Client Secret</option>
+              <option value="private_key">Public Key / Private Key</option>
+              <option value="pkce">PKCE (Public Client)</option>
+            </select>
+          </div>
+        </div>
+        <div class="config-row" id="cfg-clientSecret-row">
+          <label for="cfg-clientSecret">Client Secret</label>
+          <input type="password" id="cfg-clientSecret" placeholder="OAuth 2.0 Client Secret">
+        </div>
+        <div class="config-row">
+          <label for="cfg-redirectUri">Redirect URI</label>
+          <div class="redirect-uri-group">
+            <select id="cfg-redirectUriMode">
+              <option value="thisApp">This app</option>
+              <option value="custom">Specify URI</option>
+            </select>
+            <input type="text" id="cfg-redirectUri" placeholder="https://your-domain.com/callback" hidden>
+            <span class="redirect-uri-preview" id="redirect-uri-preview"></span>
+          </div>
+        </div>
+        <div class="config-section-divider">
+          <span>Authorization Server</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-authServerMode">Authorization Server</label>
+          <div class="redirect-uri-group">
+            <select id="cfg-authServerMode">
+              <option value="org">Org Authorization Server (v1)</option>
+              <option value="default">Default Custom Auth Server</option>
+              <option value="custom">Custom Auth Server ID</option>
+            </select>
+            <input type="text" id="cfg-authorizationServerId" placeholder="Custom Auth Server ID" hidden>
+            <span class="auth-server-preview" id="auth-server-preview"></span>
+          </div>
+        </div>
+        <div class="config-row">
+          <label>Scopes <span class="label-optional">(optional)</span></label>
+          <div class="scope-selector" id="scope-selector">
+            <div class="scope-tiles" id="scope-tiles">
+              <span class="scope-loading" id="scope-loading">Configure Okta Domain and Auth Server to load scopes</span>
+            </div>
+            <div class="scope-custom-input">
+              <input type="text" id="scope-custom-input" placeholder="Add custom scope...">
+              <button type="button" class="btn btn-small btn-secondary" id="scope-add-btn">Add</button>
+            </div>
+          </div>
+          <input type="hidden" id="cfg-scopes" value="openid profile email">
+        </div>
+        <div class="config-row">
+          <label>Response Type</label>
+          <div class="scope-selector" id="response-type-selector">
+            <div class="scope-tiles" id="response-type-tiles">
+              <span class="scope-loading" id="response-type-loading">Configure Okta Domain and Auth Server to load response types</span>
+            </div>
+          </div>
+          <input type="hidden" id="cfg-responseType" value="code">
+        </div>
+        <div class="config-row-split">
+          <div class="config-row-half">
+            <label for="cfg-stateMode">State</label>
+            <div class="param-mode-group">
+              <select id="cfg-stateMode">
+                <option value="random">Random</option>
+                <option value="specify">Specify</option>
+              </select>
+              <input type="text" id="cfg-state" placeholder="Custom state value" hidden>
+            </div>
+          </div>
+          <div class="config-row-half">
+            <label for="cfg-nonceMode">Nonce</label>
+            <div class="param-mode-group">
+              <select id="cfg-nonceMode">
+                <option value="random">Random</option>
+                <option value="specify">Specify</option>
+              </select>
+              <input type="text" id="cfg-nonce" placeholder="Custom nonce value" hidden>
+            </div>
+          </div>
+        </div>
+        <!-- Hidden fields for compatibility with shared configs -->
+        <input type="hidden" id="cfg-resourceServerAudience">
+        <input type="hidden" id="cfg-tokenExchangeScope">
+        <input type="hidden" id="cfg-principalId">
+        <input type="hidden" id="cfg-privateJwk">
+        <div class="config-section-divider">
+          <span>Notes</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-note">Note <span class="label-optional">(optional)</span></label>
+          <textarea id="cfg-note" rows="2" placeholder="Any notes about this configuration..."></textarea>
+        </div>
+        <div class="config-actions">
+          <button class="btn btn-primary btn-small" id="save-config-btn">Save to Browser</button>
+          <button class="btn btn-primary btn-small" id="save-server-btn">Save to Server</button>
+          <button class="btn btn-secondary btn-small" id="clear-config-btn">Clear Saved</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- Save Config Modal -->
+    <div class="modal-overlay" id="save-modal" hidden>
+      <div class="modal modal-dialog">
+        <div class="modal-header">
+          <h3>Save Configuration</h3>
+        </div>
+        <div class="modal-body">
+          <div class="save-mode-toggle">
+            <label class="save-mode-option">
+              <input type="radio" name="save-mode" value="new" checked>
+              <span>Save as New</span>
+            </label>
+            <label class="save-mode-option">
+              <input type="radio" name="save-mode" value="overwrite">
+              <span>Overwrite Existing</span>
+            </label>
+          </div>
+          <div class="dialog-field" id="save-new-field">
+            <label for="save-name">Configuration Name</label>
+            <input type="text" id="save-name" class="dialog-input" placeholder="e.g. Dev Environment">
+          </div>
+          <div class="dialog-field" id="save-overwrite-field" hidden>
+            <label for="save-existing">Select Configuration</label>
+            <select id="save-existing" class="dialog-select">
+              <option value="">Loading...</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-small" id="save-modal-cancel">Cancel</button>
+          <button class="btn btn-primary btn-small" id="save-modal-ok">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Configs Modal -->
+    <div class="modal-overlay" id="configs-modal" hidden>
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Saved Configurations</h3>
+          <button class="btn-icon" id="close-modal-btn" title="Close">&times;</button>
+        </div>
+        <div class="modal-body" id="configs-list">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow Step -->
+    <div class="stepper">
+      <div class="stepper-header">
+        <span>Authentication</span>
+        <div class="stepper-actions">
+          <button id="view-logs-btn" class="btn btn-secondary btn-small">View Logs</button>
+          <button id="reset-btn" class="btn btn-secondary btn-small">Reset</button>
+        </div>
+      </div>
+
+      <!-- Step 1: Authorization Code Flow -->
+      <div class="step" id="step-1">
+        <div class="step-header">
+          <span class="step-number">1</span>
+          <div class="step-info">
+            <span class="actor actor-app">Application</span>
+            <h3>User Authentication</h3>
+            <p>Redirect the user to Okta for authentication/authorization. After successful remediation, Okta returns an authorization code which is exchanged for tokens (ID token, access token, refresh token).</p>
+            <div class="step-option">
+              <code class="uri-template" id="auth-endpoint-preview">oauth2/v1/authorize</code>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-step-1">Generate Token</button>
+        </div>
+        <details class="curl-section">
+          <summary>cURL Commands</summary>
+          <div class="curl-step-label">1. Redirect user to authorize endpoint:</div>
+          <pre class="curl-box" id="curl-1-authorize"></pre>
+          <div class="curl-step-label">2. Exchange authorization code for tokens:</div>
+          <pre class="curl-box" id="curl-1-token"></pre>
+        </details>
+        <div class="step-result" id="result-1"></div>
+      </div>
+    </div>
+
+    <!-- Token Details Section -->
+    <div class="token-details" id="token-details" hidden>
+      <h3>Token Details</h3>
+      <div class="token-tabs">
+        <button class="token-tab active" data-tab="id-token">ID Token</button>
+        <button class="token-tab" data-tab="access-token">Access Token</button>
+        <button class="token-tab" data-tab="refresh-token">Refresh Token</button>
+      </div>
+      <div class="token-content" id="token-content"></div>
+    </div>
+  </div>
+
+  <!-- Dialog Modal -->
+  <div class="modal-overlay" id="dialog-modal" hidden>
+    <div class="modal modal-dialog">
+      <div class="modal-header">
+        <h3 id="dialog-title">Message</h3>
+      </div>
+      <div class="modal-body">
+        <p id="dialog-message"></p>
+        <input type="text" id="dialog-input" class="dialog-input" hidden>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-small" id="dialog-cancel" hidden>Cancel</button>
+        <button class="btn btn-primary btn-small" id="dialog-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check authentication before loading app
+    (function() {
+      const CURRENT_USER_KEY = 'okta_current_user';
+      const SESSION_HOURS = 24;
+
+      function isAuthenticated() {
+        const userJson = localStorage.getItem(CURRENT_USER_KEY);
+        if (!userJson) return false;
+        try {
+          const user = JSON.parse(userJson);
+          if (!user.authenticatedAt) return false;
+          const authTime = new Date(user.authenticatedAt);
+          const hoursSinceAuth = (Date.now() - authTime.getTime()) / (1000 * 60 * 60);
+          return hoursSinceAuth < SESSION_HOURS;
+        } catch { return false; }
+      }
+
+      if (!isAuthenticated()) {
+        window.location.href = '/login.html';
+      }
+    })();
+  </script>
+  <script src="auth-code-app.js"></script>
+</body>
+</html>
