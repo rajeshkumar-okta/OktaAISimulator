@@ -1,4 +1,5 @@
 import * as store from '../../../src/state/sessionStore-serverless';
+import { oauthStateStore } from '../oauth/authorize';
 
 /**
  * Next.js API Route - State
@@ -21,6 +22,17 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
+      // Check if requesting OAuth state by state parameter
+      const { state } = req.query;
+      
+      if (state) {
+        const oauthData = oauthStateStore.get(state);
+        if (!oauthData) {
+          return res.status(404).json({ error: 'OAuth state not found or expired' });
+        }
+        return res.json(oauthData);
+      }
+      
       // Get current state
       res.json(store.getState());
     } else if (req.method === 'POST') {

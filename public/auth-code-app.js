@@ -1179,16 +1179,6 @@ async function doLogin() {
 
     const data = await res.json();
 
-    // Store OAuth parameters in session storage so callback can access them
-    sessionStorage.setItem('oauth-state', data.state);
-    sessionStorage.setItem('oauth-nonce', data.nonce);
-    sessionStorage.setItem('oauth-oktaDomain', cfg.oktaDomain);
-    sessionStorage.setItem('oauth-clientId', cfg.clientId);
-    sessionStorage.setItem('oauth-clientSecret', cfg.clientSecret);
-    sessionStorage.setItem('oauth-redirectUri', cfg.redirectUri);
-    sessionStorage.setItem('oauth-authServerId', cfg.authorizationServerId || '');
-    sessionStorage.setItem('oauth-codeVerifier', data.codeVerifier || '');
-
     // Open OAuth login in popup
     const w = 500, h = 600;
     const left = window.screenX + (window.outerWidth - w) / 2;

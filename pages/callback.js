@@ -21,17 +21,35 @@ export default function Callback() {
           throw new Error('No authorization code received');
         }
 
-        // Get state from session storage (was stored by parent when opening popup)
-        const sessionState = sessionStorage.getItem('oauth-state');
-        const sessionOktaDomain = sessionStorage.getItem('oauth-oktaDomain');
-        const sessionClientId = sessionStorage.getItem('oauth-clientId');
-        const sessionClientSecret = sessionStorage.getItem('oauth-clientSecret');
-        const sessionRedirectUri = sessionStorage.getItem('oauth-redirectUri');
-        const sessionAuthServerId = sessionStorage.getItem('oauth-authServerId');
-        const sessionCodeVerifier = sessionStorage.getItem('oauth-codeVerifier');
+        // Get OAuth state from server using the state parameter
+        console.log('[Callback] Fetching OAuth state from server...');
+        const stateResponse = await fetch(`/api/state?state=${encodeURIComponent(state)}`);
+        
+        if (!stateResponse.ok) {
+          throw new Error(`Failed to get OAuth state: ${stateResponse.status}`);
+        }
 
-        if (state !== sessionState) {
-          console.warn('[Callback] State mismatch - possible CSRF attack');
+        const stateData = await stateResponse.json();
+        
+        const sessionOktaDomain = stateData.oktaDomain;
+        const sessionClientId = stateData.clientId;
+        const sessionClientSecret = stateData.clientSecret;
+        const sessionRedirectUri = stateData.redirectUri;
+        const sessionAuthServerId = stateData.authorizationServerId;
+        const sessionCodeVerifier = stateData.codeVerifier;
+
+        console.log('[Callback] Retrieved OAuth state:', {
+          state,
+          oktaDomain: sessionOktaDomain,
+          clientId: sessionClientId,
+          clientSecret: sessionClientSecret ? 'present' : 'MISSING',
+          redirectUri: sessionRedirectUri,
+          authServerId: sessionAuthServerId,
+          codeVerifier: sessionCodeVerifier ? 'present' : 'MISSING',
+        });
+
+        if (!sessionOktaDomain || !sessionClientId || !sessionRedirectUri) {
+          throw new Error('Missing required OAuth parameters from state');
         }
 
         // Exchange code for tokens

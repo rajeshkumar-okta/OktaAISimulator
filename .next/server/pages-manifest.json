@@ -1,6 +1,1 @@
-{
-  "/_app": "pages/_app.js",
-  "/_error": "pages/_error.js",
-  "/_document": "pages/_document.js",
-  "/api/well-known": "pages/api/well-known.js"
-}
+{"/_app":"pages/_app.js","/api/configs":"pages/api/configs.js","/api/device/token":"pages/api/device/token.js","/api/device/authorize":"pages/api/device/authorize.js","/api/direct-auth/authenticate":"pages/api/direct-auth/authenticate.js","/_error":"pages/_error.js","/api/direct-auth/mfa-poll":"pages/api/direct-auth/mfa-poll.js","/api/idps":"pages/api/idps.js","/api/flows":"pages/api/flows.js","/api/direct-auth/mfa":"pages/api/direct-auth/mfa.js","/api/logs":"pages/api/logs.js","/api/idps/[id]":"pages/api/idps/[id].js","/api/oauth/authorize":"pages/api/oauth/authorize.js","/api/oauth/token":"pages/api/oauth/token.js","/api/native-to-web/exchange":"pages/api/native-to-web/exchange.js","/api/idps/primary":"pages/api/idps/primary.js","/api/logs/last-error":"pages/api/logs/last-error.js","/api/state":"pages/api/state.js","/api/settings/resolve":"pages/api/settings/resolve.js","/api/settings/summary":"pages/api/settings/summary.js","/api/steps/reset":"pages/api/steps/reset.js","/api/settings":"pages/api/settings.js","/callback":"pages/callback.html","/api/steps":"pages/api/steps.js","/api/well-known":"pages/api/well-known.js","/api/sub-functions":"pages/api/sub-functions.js","/":"pages/index.html","/_document":"pages/_document.js","/404":"pages/404.html"}

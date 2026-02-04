@@ -4,6 +4,9 @@ import { validateBasicOAuthConfig } from '../../../src/config';
 import * as store from '../../../src/state/sessionStore-serverless';
 import * as logger from '../../../src/services/logger-serverless';
 
+// In-memory store for OAuth configurations by state (for callback retrieval)
+const oauthStateStore = new Map();
+
 /**
  * Next.js API Route - OAuth Authorization
  * POST /api/oauth/authorize
@@ -58,6 +61,26 @@ export default async function handler(req, res) {
     const codeChallenge = Buffer.from(
       crypto.createHash('sha256').update(codeVerifier).digest()
     ).toString('base64url');
+
+    // Store OAuth configuration by state for callback to retrieve
+    oauthStateStore.set(oauthState, {
+      oktaDomain: cfg.oktaDomain,
+      clientId: cfg.clientId,
+      clientSecret: cfg.clientSecret,
+      redirectUri: cfg.redirectUri,
+      authorizationServerId: step1AuthServerId,
+      codeVerifier,
+      nonce: oauthNonce,
+      createdAt: Date.now(),
+    });
+
+    // Clean up old entries (older than 15 minutes)
+    const now = Date.now();
+    for (const [state, data] of oauthStateStore.entries()) {
+      if (now - data.createdAt > 15 * 60 * 1000) {
+        oauthStateStore.delete(state);
+      }
+    }
 
     // Store in serverless session
     store.setState({
@@ -123,3 +146,6 @@ function getOAuthPath(authorizationServerId) {
   }
   return `oauth2/${authorizationServerId}/v1`;
 }
+
+// Export for use in other endpoints
+export { oauthStateStore };

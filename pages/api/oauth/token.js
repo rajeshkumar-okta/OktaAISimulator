@@ -25,8 +25,33 @@ export default async function handler(req, res) {
   try {
     const { code, state, oktaDomain, clientId, clientSecret, redirectUri, authorizationServerId, codeVerifier } = req.body;
 
+    console.log('[Token Exchange] Request received:', { 
+      code: code ? 'present' : 'MISSING',
+      state,
+      oktaDomain,
+      clientId,
+      clientSecret: clientSecret ? 'present' : 'MISSING',
+      redirectUri,
+      authorizationServerId,
+      codeVerifier: codeVerifier ? 'present' : 'MISSING',
+    });
+
     if (!code || !oktaDomain || !clientId) {
-      return res.status(400).json({ error: 'code, oktaDomain, and clientId required' });
+      return res.status(400).json({ 
+        error: 'code, oktaDomain, and clientId required',
+        received: { 
+          code: code ? 'present' : 'MISSING',
+          oktaDomain: oktaDomain ? 'present' : 'MISSING',
+          clientId: clientId ? 'present' : 'MISSING',
+        }
+      });
+    }
+
+    if (!redirectUri) {
+      return res.status(400).json({ 
+        error: 'redirectUri is required',
+        received: { redirectUri }
+      });
     }
 
     // Clean up oktaDomain
