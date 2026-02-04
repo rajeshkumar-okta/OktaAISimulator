@@ -75,6 +75,12 @@ export default async function handler(req, res) {
     });
 
     const oauthPath = getOAuthPath(step1AuthServerId);
+    
+    // Ensure oktaDomain is clean (remove protocol and trailing slash)
+    let cleanDomain = cfg.oktaDomain
+      .replace(/^https?:\/\//, '') // Remove https:// or http://
+      .replace(/\/$/, ''); // Remove trailing slash
+    
     const params = new URLSearchParams({
       client_id: cfg.clientId,
       response_type: cfg.responseType || 'code',
@@ -89,7 +95,7 @@ export default async function handler(req, res) {
       ...(cfg.maxAge && { max_age: cfg.maxAge }),
     });
 
-    const authUrl = `https://${cfg.oktaDomain}/${oauthPath}/authorize?${params.toString()}`;
+    const authUrl = `https://${cleanDomain}/${oauthPath}/authorize?${params.toString()}`;
 
     logger.log(3, 'Authorization URL generated', {
       url: authUrl.replace(/client_id=[^&]+/, 'client_id=***'),
