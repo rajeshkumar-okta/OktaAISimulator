@@ -14,27 +14,35 @@ export default function Callback() {
       type: 'oauth-callback',
       code,
       state,
-      error,
-      errorDescription,
+      success: !error && code ? true : false,
+      error: error ? `${error}: ${errorDescription || 'Unknown error'}` : null,
       receivedAt: new Date().toISOString(),
     };
+
+    console.log('[Callback] OAuth response received:', message);
 
     // Try BroadcastChannel first (most reliable)
     try {
       const channel = new BroadcastChannel('oauth-callback');
       channel.postMessage(message);
+      console.log('[Callback] Message sent via BroadcastChannel');
       channel.close();
     } catch (err) {
+      console.log('[Callback] BroadcastChannel failed:', err.message);
       // Fallback to postMessage for browsers without BroadcastChannel support
       if (window.opener) {
         window.opener.postMessage(message, window.location.origin);
+        console.log('[Callback] Message sent via postMessage');
+      } else {
+        console.log('[Callback] No window.opener available');
       }
     }
 
     // Close the popup after a short delay
     setTimeout(() => {
+      console.log('[Callback] Closing popup');
       window.close();
-    }, 500);
+    }, 1000);
   }, []);
 
   return (
@@ -101,3 +109,4 @@ if (typeof document !== 'undefined') {
   `;
   document.head.appendChild(style);
 }
+
