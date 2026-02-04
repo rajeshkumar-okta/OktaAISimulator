@@ -94,7 +94,7 @@ export default async function handler(req, res) {
       state: oauthState,
       nonce: oauthNonce,
       codeChallenge,
-      pkce: cfg.usePkce ? 'enabled' : 'disabled',
+      pkce: 'enabled (always)',
     });
 
     const oauthPath = getOAuthPath(step1AuthServerId);
@@ -111,7 +111,8 @@ export default async function handler(req, res) {
       redirect_uri: cfg.redirectUri,
       state: oauthState,
       nonce: oauthNonce,
-      ...(cfg.usePkce && { code_challenge: codeChallenge, code_challenge_method: 'S256' }),
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
       ...(cfg.loginHint && { login_hint: cfg.loginHint }),
       ...(cfg.idpHint && { idp: cfg.idpHint }),
       ...(cfg.prompt && { prompt: cfg.prompt }),
@@ -128,7 +129,7 @@ export default async function handler(req, res) {
       authUrl,
       state: oauthState,
       nonce: oauthNonce,
-      codeVerifier: cfg.usePkce ? codeVerifier : undefined,
+      codeVerifier,
       sessionId: logger.getSessionMeta().sessionId,
     });
   } catch (error) {

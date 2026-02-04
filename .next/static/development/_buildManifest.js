@@ -1,1 +1,0 @@
-self.__BUILD_MANIFEST = (function(a){return {__rewrites:{afterFiles:[],beforeFiles:[],fallback:[{has:void 0,source:a,destination:a}]},sortedPages:["\u002F_app"]}}("\u002F:path*"));self.__BUILD_MANIFEST_CB && self.__BUILD_MANIFEST_CB()
