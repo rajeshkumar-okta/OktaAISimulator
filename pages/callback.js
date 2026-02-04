@@ -2,47 +2,124 @@ import React, { useEffect } from 'react';
 
 export default function Callback() {
   useEffect(() => {
-    // Extract query parameters
-    const searchParams = new URLSearchParams(window.location.search);
-    const code = searchParams.get('code');
-    const state = searchParams.get('state');
-    const error = searchParams.get('error');
-    const errorDescription = searchParams.get('error_description');
+    const handleCallback = async () => {
+      try {
+        // Extract query parameters
+        const searchParams = new URLSearchParams(window.location.search);
+        const code = searchParams.get('code');
+        const state = searchParams.get('state');
+        const error = searchParams.get('error');
+        const errorDescription = searchParams.get('error_description');
 
-    // Prepare message to send to parent window
-    const message = {
-      type: 'oauth-callback',
-      code,
-      state,
-      success: !error && code ? true : false,
-      error: error ? `${error}: ${errorDescription || 'Unknown error'}` : null,
-      receivedAt: new Date().toISOString(),
+        console.log('[Callback] OAuth response:', { code: code ? 'present' : null, state, error });
+
+        if (error) {
+          throw new Error(`${error}: ${errorDescription || 'Unknown error'}`);
+        }
+
+        if (!code) {
+          throw new Error('No authorization code received');
+        }
+
+        // Get state from session storage (was stored by parent when opening popup)
+        const sessionState = sessionStorage.getItem('oauth-state');
+        const sessionOktaDomain = sessionStorage.getItem('oauth-oktaDomain');
+        const sessionClientId = sessionStorage.getItem('oauth-clientId');
+        const sessionClientSecret = sessionStorage.getItem('oauth-clientSecret');
+        const sessionRedirectUri = sessionStorage.getItem('oauth-redirectUri');
+        const sessionAuthServerId = sessionStorage.getItem('oauth-authServerId');
+        const sessionCodeVerifier = sessionStorage.getItem('oauth-codeVerifier');
+
+        if (state !== sessionState) {
+          console.warn('[Callback] State mismatch - possible CSRF attack');
+        }
+
+        // Exchange code for tokens
+        console.log('[Callback] Exchanging code for tokens...');
+        const tokenResponse = await fetch('/api/oauth/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code,
+            state,
+            oktaDomain: sessionOktaDomain,
+            clientId: sessionClientId,
+            clientSecret: sessionClientSecret,
+            redirectUri: sessionRedirectUri,
+            authorizationServerId: sessionAuthServerId,
+            codeVerifier: sessionCodeVerifier,
+          }),
+        });
+
+        if (!tokenResponse.ok) {
+          const errorData = await tokenResponse.json();
+          throw new Error(errorData.error || `Token exchange failed with status ${tokenResponse.status}`);
+        }
+
+        const tokenData = await tokenResponse.json();
+
+        console.log('[Callback] Token exchange successful!');
+
+        // Prepare message to send to parent window
+        const message = {
+          type: 'oauth-callback',
+          success: true,
+          code,
+          state,
+          idToken: tokenData.idToken,
+          accessToken: tokenData.accessToken,
+          refreshToken: tokenData.refreshToken,
+          expiresIn: tokenData.expiresIn,
+          receivedAt: new Date().toISOString(),
+        };
+
+        // Try BroadcastChannel first (most reliable)
+        try {
+          const channel = new BroadcastChannel('oauth-callback');
+          channel.postMessage(message);
+          console.log('[Callback] Message sent via BroadcastChannel');
+          channel.close();
+        } catch (err) {
+          console.log('[Callback] BroadcastChannel failed:', err.message);
+          // Fallback to postMessage
+          if (window.opener) {
+            window.opener.postMessage(message, window.location.origin);
+            console.log('[Callback] Message sent via postMessage');
+          }
+        }
+
+        // Close the popup after a short delay
+        setTimeout(() => {
+          console.log('[Callback] Closing popup');
+          window.close();
+        }, 1000);
+      } catch (err) {
+        console.error('[Callback] Error:', err.message);
+
+        const message = {
+          type: 'oauth-callback',
+          success: false,
+          error: err.message,
+          receivedAt: new Date().toISOString(),
+        };
+
+        try {
+          const channel = new BroadcastChannel('oauth-callback');
+          channel.postMessage(message);
+          channel.close();
+        } catch {
+          if (window.opener) {
+            window.opener.postMessage(message, window.location.origin);
+          }
+        }
+
+        setTimeout(() => {
+          window.close();
+        }, 2000);
+      }
     };
 
-    console.log('[Callback] OAuth response received:', message);
-
-    // Try BroadcastChannel first (most reliable)
-    try {
-      const channel = new BroadcastChannel('oauth-callback');
-      channel.postMessage(message);
-      console.log('[Callback] Message sent via BroadcastChannel');
-      channel.close();
-    } catch (err) {
-      console.log('[Callback] BroadcastChannel failed:', err.message);
-      // Fallback to postMessage for browsers without BroadcastChannel support
-      if (window.opener) {
-        window.opener.postMessage(message, window.location.origin);
-        console.log('[Callback] Message sent via postMessage');
-      } else {
-        console.log('[Callback] No window.opener available');
-      }
-    }
-
-    // Close the popup after a short delay
-    setTimeout(() => {
-      console.log('[Callback] Closing popup');
-      window.close();
-    }, 1000);
+    handleCallback();
   }, []);
 
   return (
@@ -50,7 +127,7 @@ export default function Callback() {
       <div style={styles.card}>
         <div style={styles.spinner}></div>
         <h2 style={styles.title}>Processing OAuth Callback</h2>
-        <p style={styles.text}>Please wait while we process your login...</p>
+        <p style={styles.text}>Exchanging authorization code for tokens...</p>
         <p style={{ ...styles.text, fontSize: '12px', color: '#666', marginTop: '20px' }}>
           This window will close automatically.
         </p>
@@ -109,4 +186,5 @@ if (typeof document !== 'undefined') {
   `;
   document.head.appendChild(style);
 }
+
 
