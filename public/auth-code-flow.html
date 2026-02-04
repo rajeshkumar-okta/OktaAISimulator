@@ -270,9 +270,7 @@
         } catch { return false; }
       }
 
-      if (!isAuthenticated()) {
-        window.location.href = '/login.html';
-      }
+      // Note: No longer redirecting to login.html - OAuth flow in this app handles authentication
     })();
   </script>
   <script src="auth-code-app.js"></script>

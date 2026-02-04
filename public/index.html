@@ -804,7 +804,7 @@
 
       // Redirect to login if not authenticated
       if (!isAuthenticated()) {
-        window.location.href = '/login.html';
+
         return;
       }
 
@@ -853,7 +853,7 @@
         e.preventDefault();
         localStorage.removeItem(CURRENT_USER_KEY);
         localStorage.removeItem(IDP_CONFIG_KEY);
-        window.location.href = '/login.html';
+
       });
 
       // Configurations modal
