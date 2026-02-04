@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth Flow - Okta AI Simulator</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    /* Device code display - matches original device-grant-flow.html */
+    .device-code-display {
+      background: #f0f9ff;
+      border: 2px solid #0284c7;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .user-code-label {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 0.25rem;
+    }
+    .user-code {
+      font-size: 2rem;
+      font-weight: 700;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      letter-spacing: 0.2em;
+      color: #0284c7;
+      margin-bottom: 0.5rem;
+    }
+    .verification-uri {
+      font-size: 0.85rem;
+      color: #666;
+    }
+    .verification-uri a {
+      color: #0284c7;
+      font-weight: 600;
+    }
+    /* cURL with QR code display */
+    .curl-with-qr {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .curl-with-qr .curl-box {
+      flex: 1;
+      margin: 0;
+    }
+    .curl-qr-display {
+      flex-shrink: 0;
+      padding: 0.5rem;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+    }
+    .curl-qr-image {
+      display: block;
+      width: 150px;
+      height: 150px;
+      border-radius: 4px;
+    }
+    .curl-qr-image[src=""] {
+      background: #f5f5f5;
+    }
+    /* Button QR code display (replaces button) */
+    .button-qr-display {
+      padding: 0.75rem;
+      background: #fff;
+      border: 2px solid #0284c7;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .button-qr-image {
+      display: block;
+      width: 150px;
+      height: 150px;
+      border-radius: 4px;
+      margin: 0 auto;
+    }
+    .button-qr-image[src=""] {
+      background: #f0f9ff;
+    }
+    .polling-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: #fffbeb;
+      border: 1px solid #fbbf24;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+    }
+    .polling-status.success {
+      background: #f0fdf4;
+      border-color: #22c55e;
+    }
+    .polling-status.error {
+      background: #fef2f2;
+      border-color: #ef4444;
+    }
+    .polling-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fbbf24;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .polling-count {
+      font-size: 0.75rem;
+      color: #666;
+    }
+    /* Loading state */
+    .loading-flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      color: #666;
+    }
+    .loading-flow .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #e0e0e0;
+      border-top-color: #0066cc;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+    /* Domain link next to Okta Domain label */
+    .domain-link {
+      font-size: 0.75rem;
+      font-weight: normal;
+      margin-left: 0.5rem;
+      color: #0066cc;
+      text-decoration: none;
+    }
+    .domain-link:hover {
+      text-decoration: underline;
+    }
+    /* Device code display inline (within step) */
+    .device-code-display-inline {
+      background: #f0f9ff;
+      border: 2px solid #0284c7;
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+    }
+    .device-code-content {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .user-code-section {
+      text-align: center;
+      flex: 1;
+      min-width: 200px;
+    }
+    .user-code-label {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 0.25rem;
+    }
+    .user-code {
+      font-size: 2rem;
+      font-weight: 700;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      letter-spacing: 0.2em;
+      color: #0284c7;
+      margin-bottom: 0.5rem;
+    }
+    .verification-uri {
+      font-size: 0.85rem;
+      color: #666;
+    }
+    .verification-uri a {
+      color: #0284c7;
+      font-weight: 600;
+    }
+    /* Flow state selector */
+    .flow-state-selector {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: 1rem;
+      padding: 0.25rem 0.5rem;
+      background: #f0f9ff;
+      border: 1px solid #0284c7;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+    .flow-state-selector[hidden] {
+      display: none;
+    }
+    .flow-state-selector label {
+      color: #0284c7;
+      font-weight: 500;
+    }
+    .flow-state-selector select {
+      padding: 0.2rem 0.4rem;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: 0.8rem;
+      background: white;
+    }
+    /* Edit toggle switch */
+    .edit-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .edit-toggle input {
+      display: none;
+    }
+    .edit-toggle-slider {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      background: #ccc;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .edit-toggle-slider::before {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .edit-toggle input:checked + .edit-toggle-slider {
+      background: #0284c7;
+    }
+    .edit-toggle input:checked + .edit-toggle-slider::before {
+      transform: translateX(16px);
+    }
+    .edit-toggle-label {
+      font-size: 0.85rem;
+      color: #666;
+    }
+    .edit-toggle input:checked ~ .edit-toggle-label {
+      color: #0284c7;
+      font-weight: 500;
+    }
+    /* Edit mode styles */
+    .step {
+      position: relative;
+    }
+    .step.edit-mode {
+      border: 2px dashed #0284c7;
+      background: #f0f9ff;
+    }
+    .step-edit-controls {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      display: flex;
+      gap: 0.25rem;
+      z-index: 1;
+    }
+    .step-edit-controls[hidden] {
+      display: none;
+    }
+    .step-edit-controls .btn {
+      min-width: 28px;
+      padding: 0.2rem 0.4rem;
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+    .step-edit-controls .btn:hover:not(:disabled) {
+      opacity: 1;
+    }
+    .step-edit-controls .btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    .step-move-btn {
+      font-size: 0.7rem !important;
+    }
+    /* Add step button */
+    .add-step-container {
+      display: flex;
+      justify-content: center;
+      padding: 0.5rem 0;
+    }
+    .add-step-container[hidden] {
+      display: none;
+    }
+    .add-step-btn {
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .add-step-btn:hover {
+      opacity: 1;
+    }
+    /* Full-width modal for step editor */
+    .modal-full {
+      max-width: 900px;
+      width: 95%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .step-edit-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+    }
+    /* Step edit tabs */
+    .step-edit-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #ddd;
+      background: #f5f5f5;
+      padding: 0;
+      flex-wrap: wrap;
+    }
+    .step-edit-tab {
+      padding: 0.75rem 1rem;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: #666;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .step-edit-tab:hover {
+      background: #e8e8e8;
+      color: #333;
+    }
+    .step-edit-tab.active {
+      background: #fff;
+      color: #0066cc;
+      border-bottom-color: #0066cc;
+    }
+    /* Step edit panels */
+    .step-edit-panel {
+      display: none;
+      padding: 1.5rem;
+    }
+    .step-edit-panel.active {
+      display: block;
+    }
+    .step-edit-panel h4 {
+      margin: 1.5rem 0 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #eee;
+      font-size: 0.95rem;
+      color: #333;
+    }
+    .step-edit-panel h4:first-child {
+      margin-top: 0;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .panel-header h4 {
+      margin: 0;
+      border: none;
+      padding: 0;
+    }
+    /* Editable lists for endpoints, headers, params */
+    .editable-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .editable-list-item {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.5rem;
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+    }
+    .editable-list-item.triple {
+      grid-template-columns: 1fr 1fr 1fr auto;
+    }
+    .editable-list-item input {
+      padding: 0.4rem;
+      font-size: 0.85rem;
+    }
+    .editable-list-item .btn-remove {
+      padding: 0.25rem 0.5rem;
+      font-size: 1rem;
+      line-height: 1;
+      color: #dc3545;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    .editable-list-item .btn-remove:hover {
+      background: #fee;
+    }
+    /* Checkbox labels */
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .checkbox-label input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+    /* Config row variants */
+    .config-row-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .config-row-triple {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+    }
+    .config-row-split > div,
+    .config-row-triple > div {
+      display: flex;
+      flex-direction: column;
+    }
+    .config-row-split label,
+    .config-row-triple label {
+      margin-bottom: 0.25rem;
+    }
+    #step-edit-modal .config-row {
+      margin-bottom: 1rem;
+    }
+    #step-edit-modal textarea {
+      width: 100%;
+      resize: vertical;
+    }
+    #step-edit-modal input[type="checkbox"] {
+      width: auto;
+      margin-right: 0.5rem;
+    }
+    /* Modal footer with delete on left */
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-footer-right {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+      border-color: #dc3545;
+    }
+    .btn-danger:hover {
+      background: #c82333;
+    }
+    /* Expression autocomplete dropdown */
+    .expression-autocomplete-dropdown {
+      position: absolute;
+      z-index: 2000;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-height: 280px;
+      overflow-y: auto;
+      min-width: 250px;
+      max-width: 400px;
+    }
+    .expression-autocomplete-dropdown[hidden] {
+      display: none;
+    }
+    .autocomplete-category {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #888;
+      background: #f5f5f5;
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+    }
+    .autocomplete-item {
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+    .autocomplete-item:hover,
+    .autocomplete-item.selected {
+      background: #e8f4fc;
+    }
+    .autocomplete-name {
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 0.85rem;
+      color: #0066cc;
+    }
+    .autocomplete-desc {
+      font-size: 0.75rem;
+      color: #666;
+    }
+    /* Error state */
+    .error-flow {
+      text-align: center;
+      padding: 2rem;
+    }
+    .error-flow h2 {
+      color: #ef4444;
+    }
+    .error-flow a {
+      color: #0066cc;
+    }
+    /* Sub functions editor styles */
+    .subfn-info {
+      background: #f0f9ff;
+      border: 1px solid #0284c7;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      color: #0369a1;
+    }
+    .subfn-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .subfn-item {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .subfn-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    .subfn-select {
+      padding: 0.5rem;
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .subfn-id {
+      padding: 0.5rem;
+      font-size: 0.9rem;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    }
+    .subfn-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .subfn-inputs .muted {
+      color: #888;
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+    .subfn-input-row {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .subfn-input-row label {
+      font-size: 0.85rem;
+      color: #555;
+      text-align: right;
+    }
+    .subfn-input-row input {
+      padding: 0.4rem 0.5rem;
+      font-size: 0.85rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .subfn-store-results {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #eee;
+    }
+    .subfn-store-results > label {
+      font-size: 0.8rem;
+      color: #666;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .subfn-store-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .subfn-store-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .subfn-store-row input {
+      flex: 1;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.85rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .subfn-store-row span {
+      color: #888;
+      font-size: 0.9rem;
+    }
+    .subfn-add-store {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+    .subfn-help {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ddd;
+    }
+    .subfn-help h4 {
+      margin: 0 0 0.75rem;
+      font-size: 0.9rem;
+      color: #333;
+    }
+    .subfn-available {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+    .subfn-category {
+      padding: 0.3rem 0.5rem;
+      background: #f5f5f5;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: #666;
+      margin-top: 0.5rem;
+    }
+    .subfn-category:first-child {
+      margin-top: 0;
+    }
+    .subfn-available-item {
+      padding: 0.5rem 0.75rem;
+      background: #fafafa;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .subfn-available-item:hover {
+      background: #e8f4fc;
+      border-color: #0284c7;
+    }
+    .subfn-available-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.25rem;
+    }
+    .subfn-available-header strong {
+      font-size: 0.85rem;
+    }
+    .subfn-available-header code {
+      font-size: 0.75rem;
+      color: #666;
+      background: #f0f0f0;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+    }
+    .subfn-available-desc {
+      font-size: 0.75rem;
+      color: #666;
+      line-height: 1.3;
+    }
+    .subfn-available .loading,
+    .subfn-available .error {
+      font-size: 0.85rem;
+      color: #888;
+      font-style: italic;
+    }
+    .subfn-available .error {
+      color: #dc3545;
+    }
+    /* Doc link in breadcrumb */
+    .breadcrumb .doc-link {
+      float: right;
+      font-size: 0.8rem;
+      color: #0066cc;
+    }
+    .breadcrumb .doc-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="flow-container">
+      <div class="loading-flow">
+        <div class="spinner"></div>
+        <p>Loading flow...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check authentication before loading app
+    (function() {
+      const CURRENT_USER_KEY = 'okta_current_user';
+      const SESSION_HOURS = 24;
+
+      function isAuthenticated() {
+        const userJson = localStorage.getItem(CURRENT_USER_KEY);
+        if (!userJson) return false;
+        try {
+          const user = JSON.parse(userJson);
+          if (!user.authenticatedAt) return false;
+          const authTime = new Date(user.authenticatedAt);
+          const hoursSinceAuth = (Date.now() - authTime.getTime()) / (1000 * 60 * 60);
+          return hoursSinceAuth < SESSION_HOURS;
+        } catch { return false; }
+      }
+
+      if (!isAuthenticated()) {
+        window.location.href = '/login.html';
+      }
+    })();
+  </script>
+
+  <script type="module">
+    import { initFlow } from './lib/flow-engine/index.js';
+
+    // Custom handlers for device grant flow
+    const deviceGrantHandlers = {
+      // Step 1: Request device code
+      deviceGrantRequestCode: async (step, engine) => {
+        const cfg = engine.config.getConfig();
+
+        if (!cfg.oktaDomain || !cfg.clientId) {
+          await engine.dialog.alert('Please configure Okta Domain and Client ID.', 'Missing Configuration');
+          return;
+        }
+
+        engine.steps.showLoading(step.number);
+
+        try {
+          const res = await fetch('/api/device/authorize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ config: cfg }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to get device code');
+
+          // Store in state
+          engine.state.deviceCode = data.device_code;
+          engine.state.userCode = data.user_code;
+          engine.state.verificationUri = data.verification_uri;
+          engine.state.verificationUriComplete = data.verification_uri_complete;
+          engine.state.pollingInterval = data.interval || 5;
+          engine.state.expiresIn = data.expires_in || 600;
+
+          // Update UI
+          const display = document.getElementById('device-code-display');
+          if (display) {
+            display.hidden = false;
+            document.getElementById('user-code-value').textContent = data.user_code;
+            const link = document.getElementById('verification-uri-link');
+            link.href = data.verification_uri_complete || data.verification_uri;
+            link.textContent = data.verification_uri;
+          }
+
+          engine.steps.complete(step.number);
+          engine.steps.showResult(step.number, `Device code received. Expires in ${Math.floor(data.expires_in / 60)} minutes.`);
+
+          // Unlock steps 2 and 3
+          engine.steps.unlock(2);
+          engine.steps.unlock(3);
+
+          engine.updateCurlCommands();
+
+        } catch (err) {
+          engine.steps.error(step.number, err.message);
+        }
+      },
+
+      // Step 2: Open verification URL
+      deviceGrantOpenVerification: (step, engine) => {
+        const url = engine.state.verificationUriComplete || engine.state.verificationUri;
+        if (url) {
+          window.open(url, '_blank');
+        }
+      },
+
+      // Step 3: Poll for token
+      deviceGrantPollForToken: async (step, engine) => {
+        if (!engine.state.deviceCode) {
+          await engine.dialog.alert('No device code available. Complete Step 1 first.', 'Missing Device Code');
+          return;
+        }
+
+        const cfg = engine.config.getConfig();
+        engine.pollCount = 0;
+
+        // UI updates
+        document.getElementById('btn-step-3').disabled = true;
+        document.getElementById('btn-stop-polling').hidden = false;
+
+        engine.steps.showResult(step.number, engine._createPollingStatus('Polling for authorization...', 'pending'));
+
+        engine.pollingTimer = setInterval(async () => {
+          engine.pollCount++;
+          engine._updatePollingStatus(`Polling... (attempt ${engine.pollCount})`);
+
+          try {
+            const res = await fetch('/api/device/token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                config: cfg,
+                deviceCode: engine.state.deviceCode,
+              }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.access_token) {
+              // Success!
+              engine._stopPolling();
+
+              engine.tokens.accessToken = data.access_token;
+              engine.tokens.idToken = data.id_token;
+              engine.tokens.refreshToken = data.refresh_token;
+
+              engine.steps.complete(step.number);
+              engine.steps.showResult(step.number, engine._createPollingStatus('Authorization successful!', 'success'));
+
+              // Show token display
+              document.getElementById('token-details').hidden = false;
+              engine._switchTokenTab('access-token');
+
+            } else if (data.error === 'authorization_pending') {
+              engine._updatePollingStatus(`Waiting for user authorization... (attempt ${engine.pollCount})`);
+
+            } else if (data.error === 'slow_down') {
+              engine.state.pollingInterval += 5;
+              engine._updatePollingStatus(`Slowing down polling interval...`);
+
+            } else if (data.error === 'expired_token') {
+              engine._stopPolling();
+              engine.steps.error(step.number, 'Device code expired. Please restart the flow.');
+
+            } else if (data.error === 'access_denied') {
+              engine._stopPolling();
+              engine.steps.error(step.number, 'User denied the authorization request.');
+
+            } else {
+              engine._stopPolling();
+              engine.steps.error(step.number, data.error_description || data.error || 'Unknown error');
+            }
+
+          } catch (err) {
+            engine._stopPolling();
+            engine.steps.error(step.number, err.message);
+          }
+
+        }, engine.state.pollingInterval * 1000);
+      }
+    };
+
+    // Get flow ID from URL
+    const params = new URLSearchParams(window.location.search);
+    const flowId = params.get('flow') || 'device-grant';
+
+    async function loadFlow() {
+      try {
+        // Determine custom handlers based on flow
+        let customHandlers = {};
+        if (flowId === 'device-grant') {
+          customHandlers = deviceGrantHandlers;
+        }
+
+        const engine = await initFlow(flowId, {
+          containerId: 'flow-container',
+          customHandlers
+        });
+
+        // Update page title
+        document.title = `${engine.flow.name} - Okta AI Simulator`;
+
+      } catch (err) {
+        document.getElementById('flow-container').innerHTML = `
+          <div class="error-flow">
+            <h2>Failed to Load Flow</h2>
+            <p>${err.message}</p>
+            <p><a href="/">Return to Dashboard</a></p>
+          </div>
+        `;
+      }
+    }
+
+    loadFlow();
+  </script>
+</body>
+</html>

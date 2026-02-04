@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Okta Authentication Flows</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .login-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      max-width: 400px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .login-header {
+      background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+      padding: 2rem;
+      text-align: center;
+      color: #fff;
+    }
+
+    .login-header .icon {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .login-header h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .login-header p {
+      opacity: 0.9;
+      font-size: 0.9rem;
+    }
+
+    .login-body {
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .login-body p {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    .idp-info {
+      background: #f5f7fa;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .idp-info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.25rem 0;
+      font-size: 0.85rem;
+    }
+
+    .idp-info-row .label {
+      color: #888;
+    }
+
+    .idp-info-row .value {
+      color: #333;
+      font-weight: 500;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 6px;
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      width: 100%;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #1976d2;
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #1565c0;
+    }
+
+    .error-message {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      color: #b91c1c;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .error-message.visible {
+      display: block;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid #fff;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-state {
+      color: #888;
+      font-size: 0.9rem;
+    }
+
+    .no-idp {
+      color: #666;
+    }
+
+    .no-idp a {
+      color: #1976d2;
+      text-decoration: none;
+    }
+
+    .no-idp a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-header">
+      <div class="icon">🔐</div>
+      <h1>Okta Authentication Flows</h1>
+      <p>Sign in to continue</p>
+    </div>
+
+    <div class="login-body">
+      <div id="loading-state" class="loading-state">
+        Loading identity provider...
+      </div>
+
+      <div id="login-content" style="display: none;">
+        <p>Please sign in with your organization's identity provider to access the authentication flow simulators.</p>
+
+        <div class="idp-info" id="idp-info">
+          <div class="idp-info-row">
+            <span class="label">Identity Provider</span>
+            <span class="value" id="idp-name">-</span>
+          </div>
+          <div class="idp-info-row">
+            <span class="label">Domain</span>
+            <span class="value" id="idp-domain">-</span>
+          </div>
+        </div>
+
+        <div class="error-message" id="error-message"></div>
+
+        <button class="btn btn-primary" id="login-btn">
+          Sign In
+        </button>
+      </div>
+
+      <div id="no-idp-state" class="no-idp" style="display: none;">
+        <p>No identity provider configured.</p>
+        <p><a href="/setup.html">Run setup wizard</a> to configure one.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CURRENT_USER_KEY = 'okta_current_user';
+    const IDP_CONFIG_KEY = 'okta_idp_config';
+
+    let primaryIdp = null;
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    async function init() {
+      // Check if already logged in
+      const user = localStorage.getItem(CURRENT_USER_KEY);
+      if (user) {
+        try {
+          const userData = JSON.parse(user);
+          // Check if session is still valid (24 hour expiry)
+          const authTime = new Date(userData.authenticatedAt);
+          const now = new Date();
+          const hoursSinceAuth = (now - authTime) / (1000 * 60 * 60);
+          if (hoursSinceAuth < 24) {
+            // Still valid, redirect to home
+            window.location.href = '/';
+            return;
+          }
+        } catch {}
+      }
+
+      // Listen for OAuth callback
+      const channel = new BroadcastChannel('oauth-callback');
+      channel.onmessage = (event) => handleOAuthResult(event.data);
+      window.addEventListener('message', (event) => {
+        if (event.origin === window.location.origin) {
+          handleOAuthResult(event.data);
+        }
+      });
+
+      // Load primary IdP
+      await loadPrimaryIdp();
+
+      // Bind login button
+      document.getElementById('login-btn').addEventListener('click', handleLogin);
+    }
+
+    async function loadPrimaryIdp() {
+      try {
+        const res = await fetch('/api/idps/primary');
+        if (!res.ok) {
+          if (res.status === 404) {
+            showNoIdpState();
+            return;
+          }
+          throw new Error('Failed to load IdP');
+        }
+
+        primaryIdp = await res.json();
+
+        document.getElementById('idp-name').textContent = primaryIdp.name || 'Primary IdP';
+        document.getElementById('idp-domain').textContent = extractDomain(primaryIdp.config?.oktaDomain);
+
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('login-content').style.display = 'block';
+      } catch (err) {
+        showError('Failed to load identity provider: ' + err.message);
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('login-content').style.display = 'block';
+      }
+    }
+
+    function showNoIdpState() {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('no-idp-state').style.display = 'block';
+    }
+
+    async function handleLogin() {
+      if (!primaryIdp || !primaryIdp.config) {
+        showError('No identity provider configured');
+        return;
+      }
+
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading-spinner"></span> Signing in...';
+
+      try {
+        const cfg = {
+          oktaDomain: primaryIdp.config.oktaDomain,
+          clientId: primaryIdp.config.clientId,
+          clientSecret: primaryIdp.config.clientSecret,
+          redirectUri: window.location.origin + '/callback',
+          clientAuthMethod: 'client_secret',
+        };
+
+        const res = await fetch('/api/oauth/authorize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cfg),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Authorization request failed');
+        }
+
+        // Open OAuth popup
+        const w = 500, h = 600;
+        const left = window.screenX + (window.outerWidth - w) / 2;
+        const top = window.screenY + (window.outerHeight - h) / 2;
+        const popup = window.open(
+          data.authUrl,
+          'idp-login',
+          `width=${w},height=${h},left=${left},top=${top},popup=yes`
+        );
+
+        if (!popup) {
+          throw new Error('Popup blocked. Please allow popups for this site.');
+        }
+
+        // Poll for popup close
+        const pollTimer = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(pollTimer);
+            const user = localStorage.getItem(CURRENT_USER_KEY);
+            if (!user) {
+              btn.disabled = false;
+              btn.textContent = 'Sign In';
+            }
+          }
+        }, 500);
+
+      } catch (err) {
+        showError(err.message);
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      }
+    }
+
+    function handleOAuthResult(data) {
+      if (!data || data.type !== 'oauth-callback') return;
+
+      const btn = document.getElementById('login-btn');
+
+      if (data.error) {
+        showError(data.error);
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+        return;
+      }
+
+      if (data.success && data.claims) {
+        // Save user to localStorage
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify({
+          sub: data.claims.sub,
+          name: data.claims.name,
+          email: data.claims.email,
+          iss: data.claims.iss,
+          authenticatedAt: new Date().toISOString(),
+        }));
+
+        // Save IdP config reference
+        if (primaryIdp) {
+          localStorage.setItem(IDP_CONFIG_KEY, JSON.stringify({
+            oktaDomain: primaryIdp.config.oktaDomain,
+            clientId: primaryIdp.config.clientId,
+          }));
+        }
+
+        // Redirect to home
+        window.location.href = '/';
+      }
+    }
+
+    function showError(message) {
+      const el = document.getElementById('error-message');
+      el.textContent = message;
+      el.classList.add('visible');
+    }
+
+    function extractDomain(url) {
+      if (!url) return '-';
+      try {
+        return new URL(url).hostname;
+      } catch {
+        return url;
+      }
+    }
+  </script>
+</body>
+</html>

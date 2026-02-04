@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic Token Exchange</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">← All Flows</a>
+    </nav>
+    <header>
+      <h1>Agentic Token Exchange Flow</h1>
+      <p class="subtitle">User to AI Agent Delegation using ID-JAG Tokens</p>
+    </header>
+
+    <!-- Configuration Panel -->
+    <details class="config-panel" id="config-panel">
+      <summary>
+        Configuration <span class="config-status" id="config-status"></span>
+        <button class="btn-icon" id="load-saved-btn" title="Load saved configuration">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3.5A1.5 1.5 0 013.5 2h2.879a1.5 1.5 0 011.06.44l1.122 1.12A1.5 1.5 0 009.62 4H12.5A1.5 1.5 0 0114 5.5v7a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 12.5v-9z"/></svg>
+        </button>
+      </summary>
+      <div class="config-fields">
+        <div class="config-row">
+          <label for="cfg-oktaDomain">Okta Domain</label>
+          <input type="text" id="cfg-oktaDomain" placeholder="https://your-domain.okta.com">
+        </div>
+        <div class="config-section-divider">
+          <span>Origin Application</span>
+        </div>
+        <div class="config-row-split">
+          <div class="config-row-half">
+            <label for="cfg-clientId">Client ID</label>
+            <input type="text" id="cfg-clientId" placeholder="OAuth 2.0 Client ID">
+          </div>
+          <div class="config-row-half">
+            <label for="cfg-clientSecret">Client Secret</label>
+            <input type="password" id="cfg-clientSecret" placeholder="OAuth 2.0 Client Secret">
+          </div>
+        </div>
+        <div class="config-row">
+          <label for="cfg-redirectUri">Redirect URI</label>
+          <div class="redirect-uri-group">
+            <select id="cfg-redirectUriMode">
+              <option value="thisApp">This app</option>
+              <option value="custom">Specify URI</option>
+            </select>
+            <input type="text" id="cfg-redirectUri" placeholder="https://your-domain.com/callback" hidden>
+            <span class="redirect-uri-preview" id="redirect-uri-preview"></span>
+          </div>
+        </div>
+        <div class="config-section-divider">
+          <span>Principal / Agent</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-principalId">Principal ID (Agent/Workload)</label>
+          <input type="text" id="cfg-principalId" placeholder="e.g., wlpJ46tr4ks0JJi081t7">
+        </div>
+        <div class="config-row">
+          <label for="cfg-privateJwk">Private JWK (JSON)</label>
+          <textarea id="cfg-privateJwk" rows="4" placeholder='{"kty":"RSA","kid":"...","n":"...","e":"...","d":"...",...}'></textarea>
+        </div>
+        <div class="config-section-divider">
+          <span>Authorization Server</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-authorizationServerId">Authorization Server ID</label>
+          <input type="text" id="cfg-authorizationServerId" placeholder="Custom Auth Server ID (for Step 3)">
+        </div>
+        <div class="config-row">
+          <label>Token Exchange Scope <span class="label-optional">(optional)</span></label>
+          <div class="scope-selector" id="scope-selector">
+            <div class="scope-tiles" id="scope-tiles">
+              <span class="scope-loading" id="scope-loading">Configure Okta Domain and Auth Server ID to load scopes</span>
+            </div>
+            <div class="scope-custom-input">
+              <input type="text" id="scope-custom-input" placeholder="Add custom scope...">
+              <button type="button" class="btn btn-small btn-secondary" id="scope-add-btn">Add</button>
+            </div>
+          </div>
+          <input type="hidden" id="cfg-tokenExchangeScope">
+        </div>
+        <div class="config-section-divider">
+          <span>Notes</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-note">Note <span class="label-optional">(optional)</span></label>
+          <textarea id="cfg-note" rows="2" placeholder="Any notes about this configuration..."></textarea>
+        </div>
+        <div class="config-actions">
+          <button class="btn btn-primary btn-small" id="save-config-btn">Save to Browser</button>
+          <button class="btn btn-primary btn-small" id="save-server-btn">Save to Server</button>
+          <button class="btn btn-secondary btn-small" id="clear-config-btn">Clear Saved</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- Save Config Modal -->
+    <div class="modal-overlay" id="save-modal" hidden>
+      <div class="modal modal-dialog">
+        <div class="modal-header">
+          <h3>Save Configuration</h3>
+        </div>
+        <div class="modal-body">
+          <div class="save-mode-toggle">
+            <label class="save-mode-option">
+              <input type="radio" name="save-mode" value="new" checked>
+              <span>Save as New</span>
+            </label>
+            <label class="save-mode-option">
+              <input type="radio" name="save-mode" value="overwrite">
+              <span>Overwrite Existing</span>
+            </label>
+          </div>
+          <div class="dialog-field" id="save-new-field">
+            <label for="save-name">Configuration Name</label>
+            <input type="text" id="save-name" class="dialog-input" placeholder="e.g. Dev Environment">
+          </div>
+          <div class="dialog-field" id="save-overwrite-field" hidden>
+            <label for="save-existing">Select Configuration</label>
+            <select id="save-existing" class="dialog-select">
+              <option value="">Loading...</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-small" id="save-modal-cancel">Cancel</button>
+          <button class="btn btn-primary btn-small" id="save-modal-ok">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Configs Modal -->
+    <div class="modal-overlay" id="configs-modal" hidden>
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Saved Configurations</h3>
+          <button class="btn-icon" id="close-modal-btn" title="Close">&times;</button>
+        </div>
+        <div class="modal-body" id="configs-list">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Steps -->
+    <div class="stepper">
+      <div class="stepper-header">
+        <span>Flow Steps</span>
+        <div class="stepper-actions">
+          <button id="view-logs-btn" class="btn btn-secondary btn-small">View Logs</button>
+          <button id="reset-btn" class="btn btn-secondary btn-small">Reset Steps</button>
+        </div>
+      </div>
+
+      <!-- Step 1: SSO - Obtain Access Token -->
+      <div class="step" id="step-1">
+        <div class="step-header">
+          <span class="step-number">1</span>
+          <div class="step-info">
+            <span class="actor actor-app">Agentic Application</span>
+            <h3>Obtain Access Token - User Authentication (SSO)</h3>
+            <p>Redirect the user to Okta for authentication. The Agentic App exchanges the authorization code for an access token that will be used as the subject_token in token exchange.</p>
+            <div class="step-option step-option-inline">
+              <span class="option-label">Use authZ:</span>
+              <select id="step1-auth-server" class="step-select">
+                <option value="org" selected>oauth2/v1</option>
+                <option value="default">oauth2/default/v1</option>
+                <option value="custom">oauth2/{custom}/v1</option>
+                <option value="alternate">oauth2/{alternate}/v1</option>
+              </select>
+              <input type="text" id="step1-alternate-server" class="step-input-inline" placeholder="Alternate Auth Server ID" hidden>
+            </div>
+          </div>
+          <div class="step-action-group" id="step1-action-group">
+            <button class="btn btn-primary" id="btn-step-1">Generate Token</button>
+            <a href="#" class="use-existing-link" id="use-existing-btn">Use Existing</a>
+          </div>
+        </div>
+        <details class="curl-section" id="step1-curl-section">
+          <summary>cURL Commands</summary>
+          <div class="curl-step-label">1. Redirect user to authorize endpoint:</div>
+          <pre class="curl-box" id="curl-1-authorize"></pre>
+          <div class="curl-step-label">2. Exchange authorization code for tokens:</div>
+          <pre class="curl-box" id="curl-1-token"></pre>
+          <div class="curl-links">
+            <a href="#" class="curl-explain-link" data-step="1">Explain cURL</a>
+          </div>
+        </details>
+        <div class="use-existing-panel" id="use-existing-panel" hidden>
+          <label for="existing-token-input">Paste existing token (access_token or id_token):</label>
+          <textarea id="existing-token-input" rows="4" placeholder="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
+          <div class="use-existing-actions">
+            <button class="btn btn-secondary btn-small" id="set-access-token-btn">Set as access_token</button>
+            <button class="btn btn-secondary btn-small" id="set-id-token-btn">Set as id_token</button>
+            <button class="btn btn-link btn-small" id="cancel-existing-btn">Cancel</button>
+          </div>
+        </div>
+        <div class="step-result" id="result-1"></div>
+        <a href="/log-viewer.html?step=1" target="_blank" class="step-log-link">view log</a>
+      </div>
+
+      <!-- Step 2: Token Exchange - Get ID-JAG -->
+      <div class="step locked" id="step-2">
+        <div class="step-header">
+          <span class="step-number">2</span>
+          <div class="step-info">
+            <span class="actor actor-agent">AI Agent</span>
+            <h3>Token Exchange - Obtain ID-JAG Token</h3>
+            <p>The AI Agent exchanges the user's token for an ID-JAG (Identity Assertion) token via Token Exchange (RFC 8693). Uses a JWT client assertion signed with the Agent's private key for authentication.</p>
+            <div class="step-option step-option-inline">
+              <span class="option-label">Use authZ:</span>
+              <select id="step2-auth-server" class="step-select">
+                <option value="org" selected>oauth2/v1</option>
+                <option value="default">oauth2/default/v1</option>
+                <option value="custom">oauth2/{custom}/v1</option>
+              </select>
+              <span class="option-label">with token:</span>
+              <select id="step2-subject-token-type" class="step-select">
+                <option value="access_token">access_token</option>
+                <option value="id_token" selected>id_token</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-step-2" disabled>Exchange for ID-JAG</button>
+        </div>
+        <details class="curl-section">
+          <summary>cURL Command</summary>
+          <pre class="curl-box" id="curl-2"></pre>
+          <div class="curl-links">
+            <a href="#" class="curl-explain-link" data-step="2">Explain cURL</a>
+            <span class="curl-links-separator">|</span>
+            <a href="#" class="curl-regenerate-link" id="regenerate-curl-2">regenerate curl</a>
+          </div>
+        </details>
+        <div class="step-result" id="result-2"></div>
+        <a href="/log-viewer.html?step=2" target="_blank" class="step-log-link">view log</a>
+      </div>
+
+      <!-- Step 3: JWT Bearer Grant - Get Authorization Server Token -->
+      <div class="step locked" id="step-3">
+        <div class="step-header">
+          <span class="step-number">3</span>
+          <div class="step-info">
+            <span class="actor actor-agent">AI Agent</span>
+            <h3>JWT Bearer Grant - Obtain Access Token</h3>
+            <p>The AI Agent exchanges the ID-JAG token for an access token from the Custom Authorization Server using the JWT Bearer grant (RFC 7523). Uses the same JWT client assertion for authentication.</p>
+            <div class="step-option step-option-inline">
+              <span class="option-label">Use authZ:</span>
+              <select id="step3-auth-server" class="step-select">
+                <option value="org">oauth2/v1</option>
+                <option value="default">oauth2/default/v1</option>
+                <option value="custom" selected>oauth2/{custom}/v1</option>
+                <option value="alternate">oauth2/{alternate}/v1</option>
+              </select>
+              <input type="text" id="step3-alternate-server" class="step-input-inline" placeholder="Alternate Auth Server ID" hidden>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-step-3" disabled>Get Access Token</button>
+        </div>
+        <details class="curl-section">
+          <summary>cURL Command</summary>
+          <pre class="curl-box" id="curl-3"></pre>
+          <div class="curl-links">
+            <a href="#" class="curl-explain-link" data-step="3">Explain cURL</a>
+            <span class="curl-links-separator">|</span>
+            <a href="#" class="curl-regenerate-link" id="regenerate-curl-3">regenerate curl</a>
+          </div>
+        </details>
+        <div class="step-result" id="result-3"></div>
+        <a href="/log-viewer.html?step=3" target="_blank" class="step-log-link">view log</a>
+      </div>
+
+      <!-- Step 4: Test Token with API (Optional) -->
+      <div class="step locked" id="step-4">
+        <div class="step-header">
+          <span class="step-number">4</span>
+          <div class="step-info">
+            <span class="actor actor-agent">AI Agent</span>
+            <span class="step-optional-badge">Optional</span>
+            <h3>Test Token with API</h3>
+            <p>Test the access token by making an authenticated API request to a resource server.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-step-4" disabled>Test API</button>
+        </div>
+        <div class="api-test-config">
+          <div class="api-test-row">
+            <select id="api-method" class="api-method-select">
+              <option value="GET" selected>GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="PATCH">PATCH</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+            <input type="text" id="api-url" class="api-url-input" placeholder="https://api.example.com/resource">
+          </div>
+          <div class="api-test-body" id="api-body-section">
+            <label for="api-body">Request Body <span class="label-optional">(optional)</span></label>
+            <textarea id="api-body" rows="3" placeholder='{"key": "value"}'></textarea>
+          </div>
+        </div>
+        <details class="curl-section">
+          <summary>cURL Command</summary>
+          <pre class="curl-box" id="curl-4"></pre>
+          <div class="curl-links">
+            <a href="#" class="curl-explain-link" data-step="4">Explain cURL</a>
+            <span class="curl-links-separator">|</span>
+            <a href="#" class="curl-regenerate-link" id="regenerate-curl-4">regenerate curl</a>
+          </div>
+        </details>
+        <div class="step-result" id="result-4"></div>
+        <a href="/log-viewer.html?step=4" target="_blank" class="step-log-link">view log</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parameter Details Modal (movable/resizable) -->
+  <div class="param-modal" id="param-modal" hidden>
+    <div class="param-modal-header" id="param-modal-header">
+      <h3 id="param-modal-title">Parameter Details</h3>
+      <button class="btn-icon param-modal-close" id="param-modal-close" title="Close">&times;</button>
+    </div>
+    <div class="param-modal-body" id="param-modal-body">
+      <!-- Content populated by JavaScript -->
+    </div>
+    <div class="param-modal-resize" id="param-modal-resize"></div>
+  </div>
+
+  <!-- Dialog Modal (alert/prompt/confirm replacement) -->
+  <div class="modal-overlay" id="dialog-modal" hidden>
+    <div class="modal modal-dialog">
+      <div class="modal-header">
+        <h3 id="dialog-title">Message</h3>
+      </div>
+      <div class="modal-body">
+        <p id="dialog-message"></p>
+        <input type="text" id="dialog-input" class="dialog-input" hidden>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-small" id="dialog-cancel" hidden>Cancel</button>
+        <button class="btn btn-primary btn-small" id="dialog-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check authentication before loading app
+    (function() {
+      const CURRENT_USER_KEY = 'okta_current_user';
+      const SESSION_HOURS = 24;
+
+      function isAuthenticated() {
+        const userJson = localStorage.getItem(CURRENT_USER_KEY);
+        if (!userJson) return false;
+        try {
+          const user = JSON.parse(userJson);
+          if (!user.authenticatedAt) return false;
+          const authTime = new Date(user.authenticatedAt);
+          const hoursSinceAuth = (Date.now() - authTime.getTime()) / (1000 * 60 * 60);
+          return hoursSinceAuth < SESSION_HOURS;
+        } catch { return false; }
+      }
+
+      if (!isAuthenticated()) {
+        window.location.href = '/login.html';
+      }
+    })();
+  </script>
+  <script src="agentic-app.js"></script>
+</body>
+</html>

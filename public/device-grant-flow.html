@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Device Authorization Grant - Okta</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">← All Flows</a>
+    </nav>
+    <header>
+      <h1>Device Authorization Grant</h1>
+      <p class="subtitle">RFC 8628 - OAuth 2.0 Device Authorization Grant</p>
+    </header>
+
+    <!-- Configuration Panel -->
+    <details class="config-panel" id="config-panel" open>
+      <summary>
+        Configuration <span class="config-status" id="config-status"></span>
+        <button class="btn-icon" id="load-saved-btn" title="Load saved configuration">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3.5A1.5 1.5 0 013.5 2h2.879a1.5 1.5 0 011.06.44l1.122 1.12A1.5 1.5 0 009.62 4H12.5A1.5 1.5 0 0114 5.5v7a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 12.5v-9z"/></svg>
+        </button>
+      </summary>
+      <div class="config-fields">
+        <div class="config-row">
+          <label for="cfg-oktaDomain">Okta Domain</label>
+          <input type="text" id="cfg-oktaDomain" placeholder="https://your-domain.okta.com">
+        </div>
+        <div class="config-section-divider">
+          <span>Application</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-clientId">Client ID</label>
+          <input type="text" id="cfg-clientId" placeholder="OAuth 2.0 Client ID">
+        </div>
+        <div class="config-section-divider">
+          <span>Authorization Server</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-authServerMode">Authorization Server</label>
+          <div class="redirect-uri-group">
+            <select id="cfg-authServerMode">
+              <option value="org">Org Authorization Server (v1)</option>
+              <option value="default">Default Custom Auth Server</option>
+              <option value="custom">Custom Auth Server ID</option>
+            </select>
+            <input type="text" id="cfg-authorizationServerId" placeholder="Custom Auth Server ID" hidden>
+            <span class="auth-server-preview" id="auth-server-preview"></span>
+          </div>
+        </div>
+        <div class="config-row">
+          <label>Scopes <span class="label-optional">(optional)</span></label>
+          <div class="scope-selector" id="scope-selector">
+            <div class="scope-tiles" id="scope-tiles">
+              <span class="scope-loading" id="scope-loading">Configure Okta Domain and Auth Server to load scopes</span>
+            </div>
+            <div class="scope-custom-input">
+              <input type="text" id="scope-custom-input" placeholder="Add custom scope...">
+              <button type="button" class="btn btn-small btn-secondary" id="scope-add-btn">Add</button>
+            </div>
+          </div>
+          <input type="hidden" id="cfg-scopes" value="openid profile email offline_access">
+        </div>
+        <div class="config-section-divider">
+          <span>Notes</span>
+        </div>
+        <div class="config-row">
+          <label for="cfg-note">Note <span class="label-optional">(optional)</span></label>
+          <textarea id="cfg-note" rows="2" placeholder="Any notes about this configuration..."></textarea>
+        </div>
+        <div class="config-actions">
+          <button class="btn btn-primary btn-small" id="save-config-btn">Save to Browser</button>
+          <button class="btn btn-primary btn-small" id="save-server-btn">Save to Server</button>
+          <button class="btn btn-secondary btn-small" id="clear-config-btn">Clear Saved</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- Save Config Modal -->
+    <div class="modal-overlay" id="save-modal" hidden>
+      <div class="modal modal-dialog">
+        <div class="modal-header">
+          <h3>Save Configuration</h3>
+        </div>
+        <div class="modal-body">
+          <div class="save-mode-toggle">
+            <label class="save-mode-option">
+              <input type="radio" name="save-mode" value="new" checked>
+              <span>Save as New</span>
+            </label>
+            <label class="save-mode-option">
+              <input type="radio" name="save-mode" value="overwrite">
+              <span>Overwrite Existing</span>
+            </label>
+          </div>
+          <div class="dialog-field" id="save-new-field">
+            <label for="save-name">Configuration Name</label>
+            <input type="text" id="save-name" class="dialog-input" placeholder="e.g. Dev Environment">
+          </div>
+          <div class="dialog-field" id="save-overwrite-field" hidden>
+            <label for="save-existing">Select Configuration</label>
+            <select id="save-existing" class="dialog-select">
+              <option value="">Loading...</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-small" id="save-modal-cancel">Cancel</button>
+          <button class="btn btn-primary btn-small" id="save-modal-ok">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Configs Modal -->
+    <div class="modal-overlay" id="configs-modal" hidden>
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Saved Configurations</h3>
+          <button class="btn-icon" id="close-modal-btn" title="Close">&times;</button>
+        </div>
+        <div class="modal-body" id="configs-list">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow Steps -->
+    <div class="stepper">
+      <div class="stepper-header">
+        <span>Device Authorization Flow</span>
+        <div class="stepper-actions">
+          <button id="view-logs-btn" class="btn btn-secondary btn-small">View Logs</button>
+          <button id="reset-btn" class="btn btn-secondary btn-small">Reset</button>
+        </div>
+      </div>
+
+      <!-- Step 1: Request Device Code -->
+      <div class="step" id="step-1">
+        <div class="step-header">
+          <span class="step-number">1</span>
+          <div class="step-info">
+            <span class="actor actor-app">Device</span>
+            <h3>Request Device Code</h3>
+            <p>The device requests a device code and user code from the authorization server. The user code will be displayed to the user.</p>
+            <div class="step-option">
+              <code class="uri-template" id="device-endpoint-preview">/oauth2/v1/device/authorize</code>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-step-1">Get Device Code</button>
+        </div>
+        <details class="curl-section">
+          <summary>cURL Command</summary>
+          <pre class="curl-box" id="curl-1"></pre>
+        </details>
+        <div class="step-result" id="result-1"></div>
+      </div>
+
+      <!-- Step 2: User Authorization -->
+      <div class="step locked" id="step-2">
+        <div class="step-header">
+          <span class="step-number">2</span>
+          <div class="step-info">
+            <span class="actor actor-agent">User</span>
+            <h3>User Authorization</h3>
+            <p>The user visits the verification URI on a secondary device (phone, computer) and enters the user code to authorize the device.</p>
+            <div class="step-option">
+              <div class="device-code-display" id="device-code-display" hidden>
+                <div class="user-code-label">Enter this code:</div>
+                <div class="user-code" id="user-code-value">--------</div>
+                <div class="verification-uri">
+                  <span>at</span>
+                  <a href="#" id="verification-uri-link" target="_blank">-</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-secondary" id="btn-step-2" disabled>Open Verification URL</button>
+        </div>
+        <div class="step-result" id="result-2"></div>
+      </div>
+
+      <!-- Step 3: Poll for Token -->
+      <div class="step locked" id="step-3">
+        <div class="step-header">
+          <span class="step-number">3</span>
+          <div class="step-info">
+            <span class="actor actor-app">Device</span>
+            <h3>Poll for Token</h3>
+            <p>The device polls the token endpoint at the specified interval until the user completes authorization or the code expires.</p>
+            <div class="step-option">
+              <code class="uri-template" id="token-endpoint-preview">/oauth2/v1/token</code>
+              <span class="grant-type">grant_type=urn:ietf:params:oauth:grant-type:device_code</span>
+            </div>
+          </div>
+          <div class="step-action-group">
+            <button class="btn btn-primary" id="btn-step-3" disabled>Start Polling</button>
+            <button class="btn btn-secondary btn-small" id="btn-stop-polling" hidden>Stop</button>
+          </div>
+        </div>
+        <details class="curl-section">
+          <summary>cURL Command</summary>
+          <pre class="curl-box" id="curl-3"></pre>
+        </details>
+        <div class="step-result" id="result-3"></div>
+      </div>
+    </div>
+
+    <!-- Token Details Section -->
+    <div class="token-details" id="token-details" hidden>
+      <h3>Token Details</h3>
+      <div class="token-tabs">
+        <button class="token-tab active" data-tab="access-token">Access Token</button>
+        <button class="token-tab" data-tab="id-token">ID Token</button>
+        <button class="token-tab" data-tab="refresh-token">Refresh Token</button>
+      </div>
+      <div class="token-content" id="token-content"></div>
+    </div>
+  </div>
+
+  <!-- Dialog Modal -->
+  <div class="modal-overlay" id="dialog-modal" hidden>
+    <div class="modal modal-dialog">
+      <div class="modal-header">
+        <h3 id="dialog-title">Message</h3>
+      </div>
+      <div class="modal-body">
+        <p id="dialog-message"></p>
+        <input type="text" id="dialog-input" class="dialog-input" hidden>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-small" id="dialog-cancel" hidden>Cancel</button>
+        <button class="btn btn-primary btn-small" id="dialog-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .device-code-display {
+      background: #f0f9ff;
+      border: 2px solid #0284c7;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+    .user-code-label {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 0.25rem;
+    }
+    .user-code {
+      font-size: 2rem;
+      font-weight: 700;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      letter-spacing: 0.2em;
+      color: #0284c7;
+      margin-bottom: 0.5rem;
+    }
+    .verification-uri {
+      font-size: 0.85rem;
+      color: #666;
+    }
+    .verification-uri a {
+      color: #0284c7;
+      font-weight: 600;
+    }
+    .polling-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: #fffbeb;
+      border: 1px solid #fbbf24;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+    }
+    .polling-status.success {
+      background: #f0fdf4;
+      border-color: #22c55e;
+    }
+    .polling-status.error {
+      background: #fef2f2;
+      border-color: #ef4444;
+    }
+    .polling-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fbbf24;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .polling-count {
+      font-size: 0.75rem;
+      color: #666;
+    }
+  </style>
+
+  <script>
+    // Check authentication before loading app
+    (function() {
+      const CURRENT_USER_KEY = 'okta_current_user';
+      const SESSION_HOURS = 24;
+
+      function isAuthenticated() {
+        const userJson = localStorage.getItem(CURRENT_USER_KEY);
+        if (!userJson) return false;
+        try {
+          const user = JSON.parse(userJson);
+          if (!user.authenticatedAt) return false;
+          const authTime = new Date(user.authenticatedAt);
+          const hoursSinceAuth = (Date.now() - authTime.getTime()) / (1000 * 60 * 60);
+          return hoursSinceAuth < SESSION_HOURS;
+        } catch { return false; }
+      }
+
+      if (!isAuthenticated()) {
+        window.location.href = '/login.html';
+      }
+    })();
+  </script>
+  <script src="device-grant-app.js"></script>
+</body>
+</html>

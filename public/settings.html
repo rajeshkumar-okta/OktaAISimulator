@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Okta AI Simulator</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 2rem;
+      min-height: calc(100vh - 150px);
+    }
+
+    .settings-nav {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .settings-nav h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin: 0 0 0.75rem;
+      padding: 0 0.5rem;
+    }
+
+    .settings-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .settings-nav-item:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .settings-nav-item.active {
+      background: var(--accent-color);
+      color: white;
+    }
+
+    .settings-nav-item .icon {
+      font-size: 1.25rem;
+    }
+
+    .settings-nav-item .count {
+      margin-left: auto;
+      background: var(--bg-tertiary);
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.75rem;
+    }
+
+    .settings-nav-item.active .count {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .settings-content {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .settings-header h2 {
+      margin: 0;
+    }
+
+    .settings-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Entity list */
+    .entity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .entity-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .entity-card:hover {
+      border-color: var(--accent-color);
+    }
+
+    .entity-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .entity-name {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .entity-meta {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .entity-meta code {
+      background: var(--bg-tertiary);
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      font-size: 0.8rem;
+    }
+
+    .entity-badges {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .entity-badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+    }
+
+    .entity-badge.primary {
+      background: var(--accent-color);
+      color: white;
+    }
+
+    .entity-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .entity-actions button {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state h3 {
+      margin: 0 0 0.5rem;
+      color: var(--text-primary);
+    }
+
+    /* Form modal */
+    .form-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .form-modal-content {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow: auto;
+    }
+
+    .form-modal-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-modal-header h3 {
+      margin: 0;
+    }
+
+    .form-modal-body {
+      padding: 1.5rem;
+    }
+
+    .form-modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+      font-family: monospace;
+    }
+
+    .form-group .help-text {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 0.3rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    /* Auth servers list */
+    .auth-servers-list {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.75rem;
+      background: var(--bg-primary);
+    }
+
+    .auth-server-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    .auth-server-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .auth-server-item input {
+      flex: 1;
+      padding: 0.4rem;
+      font-size: 0.85rem;
+    }
+
+    .auth-server-item .btn-remove {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    .btn-add-auth-server {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    /* Import/Export section */
+    .import-export-section {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .import-export-section h3 {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .import-export-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">Okta AI Simulator</a>
+    <div class="navbar-links">
+      <a href="/log-viewer.html">Logs</a>
+      <a href="/manage-idps.html">IdPs</a>
+      <a href="/settings.html" class="active">Settings</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h1>Settings</h1>
+    <p class="subtitle">Manage your Okta organizations, applications, and agents</p>
+
+    <div class="settings-layout">
+      <nav class="settings-nav">
+        <h3>Configuration</h3>
+        <a href="#orgs" class="settings-nav-item active" data-section="orgs">
+          <span class="icon">🏢</span>
+          <span>Organizations</span>
+          <span class="count" id="orgs-count">0</span>
+        </a>
+        <a href="#apps" class="settings-nav-item" data-section="apps">
+          <span class="icon">📱</span>
+          <span>Applications</span>
+          <span class="count" id="apps-count">0</span>
+        </a>
+        <a href="#agents" class="settings-nav-item" data-section="agents">
+          <span class="icon">🤖</span>
+          <span>Agents</span>
+          <span class="count" id="agents-count">0</span>
+        </a>
+      </nav>
+
+      <div class="settings-content">
+        <!-- Organizations Section -->
+        <section id="section-orgs" class="settings-section">
+          <div class="settings-header">
+            <h2>Organizations</h2>
+            <div class="settings-actions">
+              <button class="btn btn-primary" id="btn-add-org">Add Organization</button>
+            </div>
+          </div>
+          <div class="entity-list" id="orgs-list"></div>
+        </section>
+
+        <!-- Applications Section -->
+        <section id="section-apps" class="settings-section" hidden>
+          <div class="settings-header">
+            <h2>Applications</h2>
+            <div class="settings-actions">
+              <button class="btn btn-primary" id="btn-add-app">Add Application</button>
+            </div>
+          </div>
+          <div class="entity-list" id="apps-list"></div>
+        </section>
+
+        <!-- Agents Section -->
+        <section id="section-agents" class="settings-section" hidden>
+          <div class="settings-header">
+            <h2>Agents</h2>
+            <div class="settings-actions">
+              <button class="btn btn-primary" id="btn-add-agent">Add Agent</button>
+            </div>
+          </div>
+          <div class="entity-list" id="agents-list"></div>
+        </section>
+
+        <!-- Import/Export -->
+        <div class="import-export-section">
+          <h3>Import / Export</h3>
+          <div class="import-export-actions">
+            <button class="btn btn-secondary" id="btn-export">Export All Settings</button>
+            <button class="btn btn-secondary" id="btn-import">Import Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Organization Form Modal -->
+  <div class="form-modal" id="org-modal" hidden>
+    <div class="form-modal-content">
+      <div class="form-modal-header">
+        <h3 id="org-modal-title">Add Organization</h3>
+        <button class="btn-close" id="org-modal-close">&times;</button>
+      </div>
+      <div class="form-modal-body">
+        <input type="hidden" id="org-id">
+        <div class="form-group">
+          <label for="org-name">Name</label>
+          <input type="text" id="org-name" placeholder="e.g., Production, Dev Sandbox">
+          <div class="help-text">A friendly name to identify this organization</div>
+        </div>
+        <div class="form-group">
+          <label for="org-domain">Okta Domain</label>
+          <input type="text" id="org-domain" placeholder="https://your-org.okta.com">
+          <div class="help-text">Your Okta organization URL</div>
+        </div>
+        <div class="form-group">
+          <label>Authorization Servers</label>
+          <div class="auth-servers-list" id="org-auth-servers">
+            <!-- Auth servers will be added here -->
+          </div>
+          <button type="button" class="btn btn-secondary btn-add-auth-server" id="btn-add-auth-server">
+            + Add Auth Server
+          </button>
+          <div class="help-text">Custom authorization servers defined in this org</div>
+        </div>
+        <div class="form-group">
+          <label for="org-notes">Notes</label>
+          <textarea id="org-notes" placeholder="Optional notes about this organization"></textarea>
+        </div>
+      </div>
+      <div class="form-modal-footer">
+        <button class="btn btn-secondary" id="org-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="org-modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Form Modal -->
+  <div class="form-modal" id="app-modal" hidden>
+    <div class="form-modal-content">
+      <div class="form-modal-header">
+        <h3 id="app-modal-title">Add Application</h3>
+        <button class="btn-close" id="app-modal-close">&times;</button>
+      </div>
+      <div class="form-modal-body">
+        <input type="hidden" id="app-id">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="app-name">Name</label>
+            <input type="text" id="app-name" placeholder="e.g., My Web App">
+          </div>
+          <div class="form-group">
+            <label for="app-org">Organization</label>
+            <select id="app-org">
+              <option value="">Select organization...</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="app-client-id">Client ID</label>
+            <input type="text" id="app-client-id" placeholder="0oa...">
+          </div>
+          <div class="form-group">
+            <label for="app-type">Application Type</label>
+            <select id="app-type">
+              <option value="web">Web Application</option>
+              <option value="spa">Single Page Application</option>
+              <option value="native">Native/Mobile</option>
+              <option value="service">Service/M2M</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="app-auth-method">Client Authentication</label>
+          <select id="app-auth-method">
+            <option value="secret">Client Secret</option>
+            <option value="private_key_jwt">Private Key JWT</option>
+            <option value="none">None (PKCE)</option>
+          </select>
+        </div>
+        <div class="form-group" id="app-secret-group">
+          <label for="app-client-secret">Client Secret</label>
+          <input type="password" id="app-client-secret" placeholder="Client secret">
+        </div>
+        <div class="form-group" id="app-jwk-group" hidden>
+          <label for="app-private-jwk">Private JWK</label>
+          <textarea id="app-private-jwk" placeholder='{"kty": "RSA", ...}'></textarea>
+        </div>
+        <div class="form-group">
+          <label for="app-redirect-uris">Redirect URIs</label>
+          <input type="text" id="app-redirect-uris" placeholder="http://localhost:3000/callback">
+          <div class="help-text">Comma-separated list of redirect URIs</div>
+        </div>
+        <div class="form-group">
+          <label for="app-scopes">Default Scopes</label>
+          <input type="text" id="app-scopes" value="openid profile email">
+        </div>
+        <div class="form-group">
+          <label for="app-notes">Notes</label>
+          <textarea id="app-notes" placeholder="Optional notes"></textarea>
+        </div>
+      </div>
+      <div class="form-modal-footer">
+        <button class="btn btn-secondary" id="app-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="app-modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent Form Modal -->
+  <div class="form-modal" id="agent-modal" hidden>
+    <div class="form-modal-content">
+      <div class="form-modal-header">
+        <h3 id="agent-modal-title">Add Agent</h3>
+        <button class="btn-close" id="agent-modal-close">&times;</button>
+      </div>
+      <div class="form-modal-body">
+        <input type="hidden" id="agent-id">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="agent-name">Name</label>
+            <input type="text" id="agent-name" placeholder="e.g., My AI Agent">
+          </div>
+          <div class="form-group">
+            <label for="agent-org">Organization</label>
+            <select id="agent-org">
+              <option value="">Select organization...</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="agent-principal-id">Principal ID</label>
+          <input type="text" id="agent-principal-id" placeholder="Workload principal ID">
+          <div class="help-text">The workload identity principal ID from Okta</div>
+        </div>
+        <div class="form-group">
+          <label for="agent-private-jwk">Private JWK</label>
+          <textarea id="agent-private-jwk" placeholder='{"kty": "RSA", "d": "...", ...}'></textarea>
+          <div class="help-text">The private key used for signing JWT assertions</div>
+        </div>
+        <div class="form-group">
+          <label for="agent-notes">Notes</label>
+          <textarea id="agent-notes" placeholder="Optional notes"></textarea>
+        </div>
+      </div>
+      <div class="form-modal-footer">
+        <button class="btn btn-secondary" id="agent-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="agent-modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Modal -->
+  <div class="form-modal" id="import-modal" hidden>
+    <div class="form-modal-content">
+      <div class="form-modal-header">
+        <h3>Import Settings</h3>
+        <button class="btn-close" id="import-modal-close">&times;</button>
+      </div>
+      <div class="form-modal-body">
+        <div class="form-group">
+          <label for="import-data">Paste JSON</label>
+          <textarea id="import-data" rows="10" placeholder="Paste exported JSON here..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="import-overwrite">
+            Overwrite existing settings (instead of merge)
+          </label>
+        </div>
+      </div>
+      <div class="form-modal-footer">
+        <button class="btn btn-secondary" id="import-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="import-modal-confirm">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/settings-app.js"></script>
+</body>
+</html>

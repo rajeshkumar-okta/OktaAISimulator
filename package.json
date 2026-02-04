@@ -1,21 +1,23 @@
 {
   "name": "okta-ai-simulator",
-  "version": "1.1.0",
-  "description": "Okta Authentication Flows Simulator - Interactive demonstrations for OAuth 2.0 and OpenID Connect flows",
-  "main": "src/server.js",
-  "type": "module",
+  "version": "2.0.0",
+  "description": "Okta Authentication Flows Simulator - Next.js Edition for Vercel",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "build": "vercel build",
-    "vercel-build": "echo 'Build step complete'",
-    "vercel-dev": "vercel dev"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
-    "express": "^4.21.0",
     "jose": "^5.6.3",
-    "open": "^10.1.0",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0"
   }
 }
