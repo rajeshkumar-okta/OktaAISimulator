@@ -76,6 +76,14 @@ export default async function handler(req, res) {
     });
 
     console.log('[Token Exchange] Requesting tokens from:', tokenUrl);
+    console.log('[Token Exchange] Request body:', {
+      grant_type: 'authorization_code',
+      client_id: clientId,
+      code: code ? 'present' : 'MISSING',
+      redirect_uri: redirectUri,
+      client_secret: clientSecret ? 'present' : 'MISSING',
+      code_verifier: codeVerifier ? 'present' : 'MISSING',
+    });
 
     // Exchange code for tokens
     const tokenResponse = await fetch(tokenUrl, {
