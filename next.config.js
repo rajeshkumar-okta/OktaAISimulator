@@ -6,12 +6,6 @@ const nextConfig = {
   env: {
     VERCEL_ENV: process.env.VERCEL_ENV || 'development',
   },
-  // API routes configuration
-  api: {
-    bodyParser: {
-      sizeLimit: '1mb',
-    },
-  },
   // Headers for static files
   async headers() {
     return [
